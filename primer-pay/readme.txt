@@ -1,8 +1,8 @@
 === Primer Pay ===
 Contributors: primersystems
-Tags: paywall, micropayments, x402, crypto, USDC, monetization
+Tags: paywall, micropayments, x402, usdc, monetization
 Requires at least: 5.8
-Tested up to: 6.7
+Tested up to: 6.9
 Requires PHP: 7.4
 Stable tag: 0.1.0
 License: GPLv2 or later
@@ -65,6 +65,19 @@ They see a free teaser of your content plus a styled banner explaining the price
 = Is this custodial? =
 
 No. Payments go directly from the visitor's extension wallet to your wallet address. Primer never holds funds.
+
+== External services ==
+
+This plugin relies on the Primer x402 facilitator service to verify and settle payments. When a visitor attempts to pay for content, the plugin sends the signed payment authorization to the facilitator, which validates the signature and executes the on-chain USDC transfer on the Base network.
+
+* Service: Primer x402 Facilitator
+* Endpoint: https://x402.primer.systems/settle
+* When: Whenever a visitor submits a valid X-PAYMENT header to the plugin's unlock endpoint
+* Data sent: The base64-encoded signed payment authorization (EIP-712 typed data) from the visitor, plus the payment requirements (amount, asset address, recipient wallet address, network). No personally identifiable information about the visitor is sent — the only identifier is the wallet address they signed with.
+* Terms of service: https://primer.systems
+* Privacy policy: https://primer.systems
+
+This is the standard x402 protocol flow. If you prefer to run your own facilitator, you can configure a custom facilitator URL in the plugin settings.
 
 == Changelog ==
 
