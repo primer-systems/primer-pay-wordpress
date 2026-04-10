@@ -1,0 +1,48 @@
+name: Build and attach release zip
+
+# Triggered when a GitHub Release is published. Also supports manual
+# workflow_dispatch so we can test the packaging step without creating
+# a release.
+on:
+  release:
+    types: [created, published]
+  workflow_dispatch:
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build plugin zip
+        # We zip the primer-pay/ directory itself (not its contents) so that
+        # when a user extracts the zip, they get a clean primer-pay/ folder
+        # ready to drop into wp-content/plugins/. The filename is fixed so
+        # the /releases/latest/download/primer-pay.zip URL in the README
+        # always resolves to the latest release asset.
+        run: |
+          zip -r primer-pay.zip primer-pay \
+            -x "primer-pay/.git*" \
+            -x "primer-pay/.DS_Store" \
+            -x "primer-pay/**/.DS_Store"
+          unzip -l primer-pay.zip
+
+      - name: Attach zip to release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: primer-pay.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload zip as workflow artifact
+        # Only runs on manual dispatch — lets us download and inspect the
+        # zip before cutting a real release.
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: primer-pay-zip
+          path: primer-pay.zip

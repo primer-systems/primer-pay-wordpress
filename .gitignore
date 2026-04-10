@@ -1,0 +1,16 @@
+# Build artefacts
+build/
+*.zip
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.vscode/
+.idea/
+
+# Local dev
+wp-content/
+.env
+.env.local
