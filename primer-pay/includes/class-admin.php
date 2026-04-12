@@ -91,21 +91,26 @@ class Primer_Pay_Admin {
             'primer_pay_main'
         );
 
-        // Asset address (advanced)
-        register_setting( 'primer-pay', 'primer_pay_asset_address', array(
-            'type'              => 'string',
-            'sanitize_callback' => array( $this, 'sanitize_wallet_address' ),
+        // Accepted networks (checkboxes + preferred radio)
+        register_setting( 'primer-pay', 'primer_pay_enabled_networks', array(
+            'type'              => 'array',
+            'sanitize_callback' => array( $this, 'sanitize_enabled_networks' ),
         ) );
-
-        // Network (advanced)
-        register_setting( 'primer-pay', 'primer_pay_network', array(
+        register_setting( 'primer-pay', 'primer_pay_preferred_network', array(
             'type'              => 'string',
-            'sanitize_callback' => 'sanitize_text_field',
+            'sanitize_callback' => array( $this, 'sanitize_preferred_network' ),
         ) );
+        add_settings_field(
+            'primer_pay_networks',
+            'Accepted Networks',
+            array( $this, 'render_networks_field' ),
+            'primer-pay',
+            'primer_pay_main'
+        );
     }
 
     public function render_section_intro() {
-        echo '<p>Configure your x402 payment settings. You need a wallet address that will receive USDC payments on Base.</p>';
+        echo '<p>Configure your x402 payment settings. You need a wallet address that can receive USDC payments on your chosen network(s).</p>';
     }
 
     public function render_wallet_field() {
@@ -114,7 +119,7 @@ class Primer_Pay_Admin {
             '<input type="text" name="primer_pay_wallet_address" value="%s" class="regular-text" placeholder="0x..." style="font-family: monospace;" />',
             esc_attr( $value )
         );
-        echo '<p class="description">Your Ethereum/Base wallet address. Payments will be sent here as USDC.</p>';
+        echo '<p class="description">Your wallet address. The same address works on all supported networks (Base, SKALE Base). Payments arrive as USDC.</p>';
 
         if ( empty( $value ) ) {
             echo '<p class="description" style="color: #d63638; font-weight: 600;">&#9888; No wallet configured. Paywalls are inactive until you set this.</p>';
@@ -136,7 +141,7 @@ class Primer_Pay_Admin {
             '<input type="url" name="primer_pay_facilitator_url" value="%s" class="regular-text" />',
             esc_attr( $value )
         );
-        echo '<p class="description">The x402 facilitator that verifies and settles payments. The default Primer facilitator supports Base network.</p>';
+        echo '<p class="description">The x402 facilitator that verifies and settles payments. The default Primer facilitator supports Base and SKALE Base.</p>';
     }
 
     public function render_access_duration_field() {
@@ -224,6 +229,117 @@ class Primer_Pay_Admin {
             return PRIMER_PAY_DEFAULT_ACCESS_DURATION;
         }
         return $value;
+    }
+
+    /**
+     * Render the accepted networks UI: one checkbox per network to
+     * enable/disable, and a radio button to mark the preferred network
+     * (which goes first in the x402 accepts array).
+     */
+    public function render_networks_field() {
+        $networks  = primer_pay_get_networks();
+        $enabled   = get_option( 'primer_pay_enabled_networks', array( 'base' ) );
+        $preferred = get_option( 'primer_pay_preferred_network', 'base' );
+
+        if ( ! is_array( $enabled ) ) {
+            $enabled = array( 'base' );
+        }
+
+        echo '<fieldset>';
+        echo '<table style="border-spacing: 0 6px;">';
+        echo '<tr><th style="text-align:left; padding-right:24px;">Network</th><th style="text-align:left; padding-right:24px;">Enabled</th><th style="text-align:left;">Preferred</th></tr>';
+
+        foreach ( $networks as $key => $net ) {
+            $is_enabled   = in_array( $key, $enabled, true );
+            $is_preferred = ( $key === $preferred );
+            printf(
+                '<tr>
+                    <td style="padding-right:24px;">%s</td>
+                    <td style="padding-right:24px;">
+                        <input type="checkbox" name="primer_pay_enabled_networks[]" value="%s" %s />
+                    </td>
+                    <td>
+                        <input type="radio" name="primer_pay_preferred_network" value="%s" %s />
+                    </td>
+                </tr>',
+                esc_html( $net['name'] ),
+                esc_attr( $key ),
+                checked( $is_enabled, true, false ),
+                esc_attr( $key ),
+                checked( $is_preferred, true, false )
+            );
+        }
+
+        echo '</table>';
+        echo '</fieldset>';
+        echo '<p class="description">Enable the networks you want to accept payments on. The preferred network is offered first to readers — if they can\'t pay on it, the next enabled network is tried. Your wallet address works on all networks.</p>';
+
+        // Inline JS: disable the preferred radio for unchecked networks.
+        ?>
+        <script>
+        (function() {
+            var checkboxes = document.querySelectorAll('input[name="primer_pay_enabled_networks[]"]');
+            var radios = document.querySelectorAll('input[name="primer_pay_preferred_network"]');
+
+            function sync() {
+                checkboxes.forEach(function(cb, i) {
+                    var radio = radios[i];
+                    if (!radio) return;
+                    radio.disabled = !cb.checked;
+                    if (!cb.checked && radio.checked) {
+                        // Move preferred to the first enabled network
+                        for (var j = 0; j < checkboxes.length; j++) {
+                            if (checkboxes[j].checked) {
+                                radios[j].checked = true;
+                                break;
+                            }
+                        }
+                    }
+                });
+            }
+
+            checkboxes.forEach(function(cb) {
+                cb.addEventListener('change', sync);
+            });
+            sync();
+        })();
+        </script>
+        <?php
+    }
+
+    /**
+     * Sanitize enabled networks: only known network keys are allowed.
+     * If nothing is checked, fall back to Base only.
+     */
+    public function sanitize_enabled_networks( $value ) {
+        if ( ! is_array( $value ) || empty( $value ) ) {
+            return array( 'base' );
+        }
+        $known = array_keys( primer_pay_get_networks() );
+        $clean = array_values( array_intersect( $value, $known ) );
+        return empty( $clean ) ? array( 'base' ) : $clean;
+    }
+
+    /**
+     * Sanitize preferred network: must be a known network key AND must
+     * be in the enabled set. If not, pick the first enabled network.
+     */
+    public function sanitize_preferred_network( $value ) {
+        $value   = sanitize_text_field( $value );
+        $known   = array_keys( primer_pay_get_networks() );
+        $enabled = get_option( 'primer_pay_enabled_networks', array( 'base' ) );
+
+        if ( ! is_array( $enabled ) || empty( $enabled ) ) {
+            $enabled = array( 'base' );
+        }
+
+        // Must be known and enabled
+        if ( in_array( $value, $known, true ) && in_array( $value, $enabled, true ) ) {
+            return $value;
+        }
+
+        // Fall back to first enabled
+        return $enabled[0];
     }
 
     // -------------------------------------------------------------------------

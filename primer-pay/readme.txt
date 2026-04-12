@@ -4,7 +4,7 @@ Tags: paywall, micropayments, x402, usdc, monetization
 Requires at least: 5.8
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 0.1.0
+Stable tag: 0.2.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -26,6 +26,7 @@ Primer Pay lets you put any post or page behind a micropayment wall using the x4
 
 * One-click paywall toggle per post/page
 * Customizable price per post (or use a global default)
+* Multi-network: accept payments on Base, SKALE Base, or both — with configurable priority
 * `[x402]` shortcode to split free teaser from paid content
 * Styled paywall banner for visitors without the extension
 * No user accounts or login required
@@ -34,7 +35,7 @@ Primer Pay lets you put any post or page behind a micropayment wall using the x4
 
 **Requirements:**
 
-* A wallet address on Base network (e.g., from MetaMask, Coinbase Wallet, or Primer Pay itself)
+* A wallet address on Base or SKALE Base (e.g., from MetaMask, Coinbase Wallet, or Primer Pay itself — same address works on all supported networks)
 * HTTPS recommended (cookies are marked Secure on HTTPS; HTTP still works for local dev)
 
 == Installation ==

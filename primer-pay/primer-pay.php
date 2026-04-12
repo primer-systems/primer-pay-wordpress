@@ -3,7 +3,7 @@
  * Plugin Name: Primer Pay
  * Plugin URI:  https://github.com/primer-systems/primer-pay-wordpress
  * Description: Monetize WordPress content with x402 micropayments. Visitors with the Primer Pay browser extension pay seamlessly; everyone else sees a teaser.
- * Version:     0.1.0
+ * Version:     0.2.0
  * Author:      Primer Systems
  * Author URI:  https://primer.systems
  * License:     GPL-2.0-or-later
@@ -14,20 +14,38 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-define( 'PRIMER_PAY_VERSION', '0.1.0' );
+define( 'PRIMER_PAY_VERSION', '0.2.0' );
 define( 'PRIMER_PAY_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'PRIMER_PAY_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
-// USDC on Base mainnet
-define( 'PRIMER_PAY_DEFAULT_ASSET', '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913' );
-define( 'PRIMER_PAY_DEFAULT_NETWORK', 'base' );
 define( 'PRIMER_PAY_DEFAULT_FACILITATOR', 'https://x402.primer.systems' );
 define( 'PRIMER_PAY_DEFAULT_PRICE', '0.01' );
 define( 'PRIMER_PAY_USDC_DECIMALS', 6 );
 
-// Token metadata for EIP-712 domain (USDC on Base)
-define( 'PRIMER_PAY_TOKEN_NAME', 'USD Coin' );
-define( 'PRIMER_PAY_TOKEN_VERSION', '2' );
+/**
+ * Supported networks and their USDC contract details.
+ * Each key is the x402 v1 network string used in payment headers.
+ */
+if ( ! function_exists( 'primer_pay_get_networks' ) ) {
+    function primer_pay_get_networks() {
+        return array(
+            'base' => array(
+                'name'         => 'Base',
+                'chainId'      => 8453,
+                'asset'        => '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+                'tokenName'    => 'USD Coin',
+                'tokenVersion' => '2',
+            ),
+            'skale-base' => array(
+                'name'         => 'SKALE Base',
+                'chainId'      => 1187947933,
+                'asset'        => '0x85889c8c714505E0c94b30fcfcF64fE3Ac8FCb20',
+                'tokenName'    => 'USD Coin',
+                'tokenVersion' => '2',
+            ),
+        );
+    }
+}
 
 // Access duration presets, in seconds. Key = stored value, label = UI text.
 // 0           = no cookie, always charge on refresh
@@ -79,10 +97,12 @@ add_action( 'plugins_loaded', 'primer_pay_init' );
 function primer_pay_activate() {
     add_option( 'primer_pay_wallet_address', '' );
     add_option( 'primer_pay_default_price', PRIMER_PAY_DEFAULT_PRICE );
-    add_option( 'primer_pay_network', PRIMER_PAY_DEFAULT_NETWORK );
     add_option( 'primer_pay_facilitator_url', PRIMER_PAY_DEFAULT_FACILITATOR );
-    add_option( 'primer_pay_asset_address', PRIMER_PAY_DEFAULT_ASSET );
     add_option( 'primer_pay_access_duration', PRIMER_PAY_DEFAULT_ACCESS_DURATION );
+    // Network selection: which networks to accept + which is preferred.
+    // Default: Base only, Base preferred. Matches v0.1 single-network behaviour.
+    add_option( 'primer_pay_enabled_networks', array( 'base' ) );
+    add_option( 'primer_pay_preferred_network', 'base' );
     // Seed the HMAC secret so it exists immediately after activation.
     primer_pay_get_secret();
 }

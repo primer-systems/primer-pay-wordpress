@@ -454,37 +454,84 @@ class Primer_Pay_Paywall {
      * Build the x402 payment requirements object for a post. Shared between
      * the 402 response path (above) and any other future caller.
      */
+    /**
+     * Build the x402 payment requirements with one entry in the accepts
+     * array per enabled network. The preferred network goes first so the
+     * extension tries it before falling back to others.
+     */
     private function build_payment_requirements( $post_id ) {
-        $wallet  = get_option( 'primer_pay_wallet_address', '' );
-        $price   = $this->get_price( $post_id );
-        $asset   = get_option( 'primer_pay_asset_address', PRIMER_PAY_DEFAULT_ASSET );
-        $network = get_option( 'primer_pay_network', PRIMER_PAY_DEFAULT_NETWORK );
-        if ( empty( $asset ) )   { $asset   = PRIMER_PAY_DEFAULT_ASSET; }
-        if ( empty( $network ) ) { $network = PRIMER_PAY_DEFAULT_NETWORK; }
-
+        $wallet    = get_option( 'primer_pay_wallet_address', '' );
+        $price     = $this->get_price( $post_id );
         $permalink = get_permalink( $post_id );
         $path      = wp_parse_url( $permalink, PHP_URL_PATH ) ?: '/';
         $title     = get_the_title( $post_id );
+        $amount    = $this->to_atomic_units( $price );
+
+        $all_networks = primer_pay_get_networks();
+        $enabled      = get_option( 'primer_pay_enabled_networks', array( 'base' ) );
+        $preferred    = get_option( 'primer_pay_preferred_network', 'base' );
+
+        if ( ! is_array( $enabled ) || empty( $enabled ) ) {
+            $enabled = array( 'base' );
+        }
+
+        // Build ordered list: preferred first, then the rest.
+        $ordered = array();
+        if ( in_array( $preferred, $enabled, true ) ) {
+            $ordered[] = $preferred;
+        }
+        foreach ( $enabled as $key ) {
+            if ( $key !== $preferred ) {
+                $ordered[] = $key;
+            }
+        }
+
+        $accepts = array();
+        foreach ( $ordered as $net_key ) {
+            if ( ! isset( $all_networks[ $net_key ] ) ) {
+                continue;
+            }
+            $net = $all_networks[ $net_key ];
+            $accepts[] = array(
+                'scheme'            => 'exact',
+                'network'           => $net_key,
+                'maxAmountRequired' => $amount,
+                'resource'          => $path,
+                'description'       => 'Access to: ' . $title,
+                'mimeType'          => 'text/html',
+                'payTo'             => $wallet,
+                'maxTimeoutSeconds' => 3600,
+                'asset'             => $net['asset'],
+                'extra'             => array(
+                    'name'    => $net['tokenName'],
+                    'version' => $net['tokenVersion'],
+                ),
+            );
+        }
+
+        // Fallback: if no networks produced an entry, use Base.
+        if ( empty( $accepts ) ) {
+            $base = $all_networks['base'];
+            $accepts[] = array(
+                'scheme'            => 'exact',
+                'network'           => 'base',
+                'maxAmountRequired' => $amount,
+                'resource'          => $path,
+                'description'       => 'Access to: ' . $title,
+                'mimeType'          => 'text/html',
+                'payTo'             => $wallet,
+                'maxTimeoutSeconds' => 3600,
+                'asset'             => $base['asset'],
+                'extra'             => array(
+                    'name'    => $base['tokenName'],
+                    'version' => $base['tokenVersion'],
+                ),
+            );
+        }
 
         return array(
             'x402Version' => 1,
-            'accepts'     => array(
-                array(
-                    'scheme'            => 'exact',
-                    'network'           => $network,
-                    'maxAmountRequired' => $this->to_atomic_units( $price ),
-                    'resource'          => $path,
-                    'description'       => 'Access to: ' . $title,
-                    'mimeType'          => 'text/html',
-                    'payTo'             => $wallet,
-                    'maxTimeoutSeconds' => 3600,
-                    'asset'             => $asset,
-                    'extra'             => array(
-                        'name'    => PRIMER_PAY_TOKEN_NAME,
-                        'version' => PRIMER_PAY_TOKEN_VERSION,
-                    ),
-                ),
-            ),
+            'accepts'     => $accepts,
         );
     }
 
@@ -541,15 +588,23 @@ class Primer_Pay_Paywall {
             return array( 'success' => false, 'error' => 'Invalid payment structure' );
         }
 
-        $wallet  = get_option( 'primer_pay_wallet_address', '' );
-        $price   = $this->get_price( $post_id );
-        $asset   = get_option( 'primer_pay_asset_address', PRIMER_PAY_DEFAULT_ASSET );
-        $network = get_option( 'primer_pay_network', PRIMER_PAY_DEFAULT_NETWORK );
-        if ( empty( $asset ) )   { $asset   = PRIMER_PAY_DEFAULT_ASSET; }
-        if ( empty( $network ) ) { $network = PRIMER_PAY_DEFAULT_NETWORK; }
+        $wallet = get_option( 'primer_pay_wallet_address', '' );
+        $price  = $this->get_price( $post_id );
 
-        $atomic_amount = $this->to_atomic_units( $price );
+        // The payment tells us which network the extension chose. Look up
+        // the correct asset address from our networks config so the
+        // facilitator receives matching requirements.
+        $payment_network = ! empty( $payment['network'] ) ? $payment['network'] : 'base';
+        $all_networks    = primer_pay_get_networks();
 
+        if ( isset( $all_networks[ $payment_network ] ) ) {
+            $asset = $all_networks[ $payment_network ]['asset'];
+        } else {
+            // Unknown network — use Base as fallback
+            $asset = $all_networks['base']['asset'];
+        }
+
+        $atomic_amount   = $this->to_atomic_units( $price );
         $facilitator_url = get_option( 'primer_pay_facilitator_url', PRIMER_PAY_DEFAULT_FACILITATOR );
 
         $payload = array(
@@ -557,7 +612,7 @@ class Primer_Pay_Paywall {
             'paymentPayload'      => $payment,
             'paymentRequirements' => array(
                 'scheme'            => 'exact',
-                'network'           => ! empty( $payment['network'] ) ? $payment['network'] : $network,
+                'network'           => $payment_network,
                 'maxAmountRequired' => $atomic_amount,
                 'asset'             => $asset,
                 'payTo'             => $wallet,

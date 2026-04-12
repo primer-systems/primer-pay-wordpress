@@ -29,6 +29,7 @@ Visitors without the extension see a teaser and a "Get Primer Pay" CTA.
 - **One-click paywall toggle** per post or page
 - **Per-post price override** (defaults to your site-wide price)
 - **`[x402]` shortcode** to split the free teaser from the paid content
+- **Multi-network support**: accept payments on [Base](https://base.org) (Ethereum L2) and/or [SKALE Base](https://skale.space) (zero-gas EVM) — with configurable priority
 - **Configurable access duration**: 30 minutes to "never expires" — prevents double-charging on refresh
 - **Works with any theme** that renders `the_content()` normally — no template modifications needed
 - **Non-custodial**: payments go directly from the reader's wallet to yours. The plugin never touches funds.
@@ -37,7 +38,7 @@ Visitors without the extension see a teaser and a "Get Primer Pay" CTA.
 
 - **WordPress 5.8+**
 - **PHP 7.4+**
-- **A wallet address** on the Base network that can receive USDC payments (e.g. from MetaMask, Coinbase Wallet, or the Primer Pay extension itself)
+- **A wallet address** that can receive USDC payments on Base or SKALE Base (e.g. from MetaMask, Coinbase Wallet, or the Primer Pay extension itself — the same address works on all supported networks)
 - **HTTPS recommended** (cookies set with the `Secure` flag on HTTPS; HTTP will still work for local dev)
 
 ## Installation
@@ -59,7 +60,7 @@ Visitors without the extension see a teaser and a "Get Primer Pay" CTA.
 
 1. **Go to Settings → Primer Pay** in your WordPress admin.
 2. **Enter your wallet address** — the address that should receive USDC payments on Base.
-3. Leave **Default Price** at `0.01` (or set whatever you like), pick an **Access Duration**, and save.
+3. Leave **Default Price** at `0.01` (or set whatever you like), pick an **Access Duration**, and choose which **networks** to accept (Base, SKALE Base, or both). Save.
 4. **Edit any post**, find the **Primer Pay** box in the sidebar, check **Enable x402 Paywall**, and publish.
 
 ### Marking where the teaser ends
