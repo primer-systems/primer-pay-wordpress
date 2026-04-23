@@ -75,7 +75,7 @@
       '<div class="primer-pay-price" style="font-size: 24px; font-weight: 600; color: #baea2a; margin-bottom: 8px;">$' + escapeHtml( price ) + ' USDC</div>' +
       '<div class="primer-pay-message" style="font-size: 14px; color: rgba(250,250,250,0.7); margin-bottom: 24px; line-height: 1.5;">This content is available instantly with the Primer Pay browser extension.<br>No account needed &mdash; just a one-time micropayment.</div>' +
       '<div class="primer-pay-actions"><a href="' + escapeAttr( chromeUrl ) + '" target="_blank" rel="noopener" style="display: inline-block; padding: 12px 32px; background: rgba(186, 234, 42, 0.1); border: 1px solid #baea2a; color: #baea2a; text-decoration: none; font-family: inherit; font-size: 13px; font-weight: 600; letter-spacing: 0.05em;">GET PRIMER PAY</a></div>' +
-      '<div class="primer-pay-footer" style="margin-top: 16px; font-size: 11px; color: rgba(250,250,250,0.3);">Powered by <a href="https://primer.systems" style="color: rgba(186,234,42,0.5); text-decoration: none;">x402</a></div>'
+      ''
     );
   }
 

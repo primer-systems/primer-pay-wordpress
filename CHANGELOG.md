@@ -4,6 +4,11 @@ All notable changes to the Primer Pay WordPress plugin are documented in this fi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.2.1] — 2026-04-21
+
+### Removed
+- "Powered by x402" front-end attribution link from paywall banner (WordPress plugin guideline 10 compliance).
+
 ## [0.2.0] — 2026-04-12
 
 ### Added

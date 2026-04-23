@@ -3,7 +3,7 @@
  * Plugin Name: Primer Pay
  * Plugin URI:  https://github.com/primer-systems/primer-pay-wordpress
  * Description: Monetize WordPress content with x402 micropayments. Visitors with the Primer Pay browser extension pay seamlessly; everyone else sees a teaser.
- * Version:     0.2.0
+ * Version:     0.2.1
  * Author:      Primer Systems
  * Author URI:  https://primer.systems
  * License:     GPL-2.0-or-later
@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-define( 'PRIMER_PAY_VERSION', '0.2.0' );
+define( 'PRIMER_PAY_VERSION', '0.2.1' );
 define( 'PRIMER_PAY_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'PRIMER_PAY_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 

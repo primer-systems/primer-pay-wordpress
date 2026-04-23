@@ -769,9 +769,6 @@ class Primer_Pay_Paywall {
                     GET PRIMER PAY
                 </a>
             </div>
-            <div class="primer-pay-footer" style="margin-top: 16px; font-size: 11px; color: rgba(250,250,250,0.3);">
-                Powered by <a href="https://primer.systems" style="color: rgba(186,234,42,0.5); text-decoration: none;">x402</a>
-            </div>
         </div>
         <?php
         return ob_get_clean();
