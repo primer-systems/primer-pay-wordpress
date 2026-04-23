@@ -15,7 +15,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Multi-network support**: accept payments on Base, SKALE Base, or both. Configurable via checkboxes in Settings → Primer Pay, with a "Preferred" radio to control which network is offered first to readers.
 - **SKALE Base** (chain ID 1187947933) — zero-gas EVM network. USDC contract: `0x85889c8c714505E0c94b30fcfcF64fE3Ac8FCb20`.
 - Settlement now reads the network from the payment payload and looks up the correct USDC contract address automatically.
-- Preferred-network radio is disabled for unchecked networks and auto-moves to the first enabled network on uncheck.
 
 ### Changed
 - Network and asset configuration is now derived from a built-in networks registry instead of separate wp_options fields. Existing single-network installs continue to work (Base is the default).
