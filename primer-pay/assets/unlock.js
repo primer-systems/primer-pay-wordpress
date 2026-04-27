@@ -61,29 +61,27 @@
 
   function renderProcessing() {
     render(
-      '<div class="primer-pay-label" style="font-size: 14px; color: #baea2a; font-weight: 600; margin-bottom: 8px; letter-spacing: 0.05em;">PRIMER PAY</div>' +
-      '<div class="primer-pay-price" style="font-size: 24px; font-weight: 600; color: #baea2a; margin-bottom: 8px;">$' + escapeHtml( price ) + ' USDC</div>' +
-      '<div class="primer-pay-message" style="font-size: 14px; color: rgba(250,250,250,0.7); margin-bottom: 4px;">Processing payment&hellip;</div>' +
-      '<div class="primer-pay-spinner" style="margin: 16px auto; width: 24px; height: 24px; border: 2px solid rgba(186,234,42,0.2); border-top-color: #baea2a; border-radius: 50%; animation: primer-pay-spin 0.8s linear infinite;"></div>' +
-      '<style>@keyframes primer-pay-spin{to{transform:rotate(360deg)}}</style>'
+      '<div class="primer-pay-label">PRIMER PAY</div>' +
+      '<div class="primer-pay-price">$' + escapeHtml( price ) + ' USDC</div>' +
+      '<div class="primer-pay-message" style="margin-bottom: 4px;">Processing payment&hellip;</div>' +
+      '<div class="primer-pay-spinner"></div>'
     );
   }
 
   function renderInstallCta() {
     render(
-      '<div class="primer-pay-label" style="font-size: 14px; color: #baea2a; font-weight: 600; margin-bottom: 8px; letter-spacing: 0.05em;">PRIMER PAY</div>' +
-      '<div class="primer-pay-price" style="font-size: 24px; font-weight: 600; color: #baea2a; margin-bottom: 8px;">$' + escapeHtml( price ) + ' USDC</div>' +
-      '<div class="primer-pay-message" style="font-size: 14px; color: rgba(250,250,250,0.7); margin-bottom: 24px; line-height: 1.5;">This content is available instantly with the Primer Pay browser extension.<br>No account needed &mdash; just a one-time micropayment.</div>' +
-      '<div class="primer-pay-actions"><a href="' + escapeAttr( chromeUrl ) + '" target="_blank" rel="noopener" style="display: inline-block; padding: 12px 32px; background: rgba(186, 234, 42, 0.1); border: 1px solid #baea2a; color: #baea2a; text-decoration: none; font-family: inherit; font-size: 13px; font-weight: 600; letter-spacing: 0.05em;">GET PRIMER PAY</a></div>' +
-      ''
+      '<div class="primer-pay-label">PRIMER PAY</div>' +
+      '<div class="primer-pay-price">$' + escapeHtml( price ) + ' USDC</div>' +
+      '<div class="primer-pay-message">This content is available instantly with the Primer Pay browser extension.<br>No account needed &mdash; just a one-time micropayment.</div>' +
+      '<div class="primer-pay-actions"><a class="primer-pay-cta" href="' + escapeAttr( chromeUrl ) + '" target="_blank" rel="noopener">GET PRIMER PAY</a></div>'
     );
   }
 
   function renderError( message ) {
     render(
-      '<div class="primer-pay-label" style="font-size: 14px; color: #B7410E; font-weight: 600; margin-bottom: 8px; letter-spacing: 0.05em;">PAYMENT FAILED</div>' +
-      '<div class="primer-pay-message" style="font-size: 14px; color: rgba(250,250,250,0.7); margin-bottom: 24px; line-height: 1.5;">' + escapeHtml( message || 'Something went wrong.' ) + '</div>' +
-      '<div class="primer-pay-actions"><button type="button" id="primer-pay-retry" style="display: inline-block; padding: 12px 32px; background: rgba(186, 234, 42, 0.1); border: 1px solid #baea2a; color: #baea2a; text-decoration: none; font-family: inherit; font-size: 13px; font-weight: 600; letter-spacing: 0.05em; cursor: pointer;">TRY AGAIN</button></div>'
+      '<div class="primer-pay-label primer-pay-label--error">PAYMENT FAILED</div>' +
+      '<div class="primer-pay-message">' + escapeHtml( message || 'Something went wrong.' ) + '</div>' +
+      '<div class="primer-pay-actions"><button type="button" class="primer-pay-retry" id="primer-pay-retry">TRY AGAIN</button></div>'
     );
     var retryBtn = document.getElementById( 'primer-pay-retry' );
     if ( retryBtn ) {
@@ -102,9 +100,9 @@
    */
   function renderDeclined() {
     render(
-      '<div class="primer-pay-label" style="font-size: 14px; color: #baea2a; font-weight: 600; margin-bottom: 8px; letter-spacing: 0.05em;">PRIMER PAY</div>' +
-      '<div class="primer-pay-message" style="font-size: 14px; color: rgba(250,250,250,0.7); margin-bottom: 24px; line-height: 1.5;">Payment declined. Check the extension for details.</div>' +
-      '<div class="primer-pay-actions"><button type="button" id="primer-pay-retry" style="display: inline-block; padding: 12px 32px; background: rgba(186, 234, 42, 0.1); border: 1px solid #baea2a; color: #baea2a; text-decoration: none; font-family: inherit; font-size: 13px; font-weight: 600; letter-spacing: 0.05em; cursor: pointer;">TRY AGAIN</button></div>'
+      '<div class="primer-pay-label">PRIMER PAY</div>' +
+      '<div class="primer-pay-message">Payment declined. Check the extension for details.</div>' +
+      '<div class="primer-pay-actions"><button type="button" class="primer-pay-retry" id="primer-pay-retry">TRY AGAIN</button></div>'
     );
     var retryBtn = document.getElementById( 'primer-pay-retry' );
     if ( retryBtn ) {

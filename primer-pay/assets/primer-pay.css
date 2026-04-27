@@ -1,0 +1,129 @@
+/**
+ * Primer Pay — front-end paywall banner styles.
+ *
+ * Uses CSS custom properties that inherit from the active WordPress theme.
+ * Most modern WP themes (and all block themes) expose --wp--preset--* tokens;
+ * we read those and fall back to computed body styles for classic themes.
+ *
+ * The banner should look native on any site without configuration.
+ */
+
+/* ------------------------------------------------------------------ */
+/* Custom-property bridge                                              */
+/*                                                                     */
+/* We define our own --pp-* properties so the rest of the stylesheet   */
+/* has a single source of truth. Values cascade:                       */
+/*   1. Theme CSS variables (--wp--preset--*)                          */
+/*   2. Inherited body styles (via currentColor / inherit)             */
+/*   3. Hardcoded neutral fallbacks                                    */
+/* ------------------------------------------------------------------ */
+
+.primer-pay-container {
+    --pp-font: var(--wp--preset--font-family--body, inherit);
+    --pp-bg: var(--wp--preset--color--base, #f9f9f9);
+    --pp-text: var(--wp--preset--color--contrast, #1a1a1a);
+    --pp-text-muted: color-mix(in srgb, var(--pp-text) 60%, transparent);
+    --pp-accent: var(--wp--preset--color--primary, #0073aa);
+    --pp-border: color-mix(in srgb, var(--pp-text) 15%, transparent);
+    --pp-radius: var(--wp--style--global--border-radius, 8px);
+    --pp-btn-bg: var(--pp-accent);
+    --pp-btn-text: var(--pp-bg);
+}
+
+/* ------------------------------------------------------------------ */
+/* Container                                                           */
+/* ------------------------------------------------------------------ */
+
+.primer-pay-container {
+    margin: 32px 0;
+    padding: 32px;
+    border: 1px solid var(--pp-border);
+    border-radius: var(--pp-radius);
+    background: var(--pp-bg);
+    color: var(--pp-text);
+    font-family: var(--pp-font);
+    text-align: center;
+    box-sizing: border-box;
+}
+
+/* ------------------------------------------------------------------ */
+/* Label ("PRIMER PAY" / "PAYMENT FAILED")                             */
+/* ------------------------------------------------------------------ */
+
+.primer-pay-label {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--pp-text-muted);
+    margin-bottom: 8px;
+}
+
+.primer-pay-label--error {
+    color: #b91c1c;
+}
+
+/* ------------------------------------------------------------------ */
+/* Price                                                               */
+/* ------------------------------------------------------------------ */
+
+.primer-pay-price {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--pp-text);
+    margin-bottom: 8px;
+}
+
+/* ------------------------------------------------------------------ */
+/* Message / description                                               */
+/* ------------------------------------------------------------------ */
+
+.primer-pay-message {
+    font-size: 14px;
+    color: var(--pp-text-muted);
+    margin-bottom: 24px;
+    line-height: 1.6;
+}
+
+/* ------------------------------------------------------------------ */
+/* CTA button & retry button                                           */
+/* ------------------------------------------------------------------ */
+
+.primer-pay-cta,
+.primer-pay-retry {
+    display: inline-block;
+    padding: 10px 28px;
+    background: var(--pp-btn-bg);
+    color: var(--pp-btn-text);
+    border: none;
+    border-radius: calc(var(--pp-radius) * 0.6);
+    text-decoration: none;
+    font-family: var(--pp-font);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s ease;
+}
+
+.primer-pay-cta:hover,
+.primer-pay-retry:hover {
+    opacity: 0.85;
+}
+
+/* ------------------------------------------------------------------ */
+/* Spinner                                                             */
+/* ------------------------------------------------------------------ */
+
+.primer-pay-spinner {
+    margin: 16px auto;
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--pp-border);
+    border-top-color: var(--pp-accent);
+    border-radius: 50%;
+    animation: primer-pay-spin 0.8s linear infinite;
+}
+
+@keyframes primer-pay-spin {
+    to { transform: rotate(360deg); }
+}

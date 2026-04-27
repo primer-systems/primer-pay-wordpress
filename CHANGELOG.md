@@ -4,6 +4,16 @@ All notable changes to the Primer Pay WordPress plugin are documented in this fi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.3.0] — 2026-04-27
+
+### Added
+- **Gutenberg block**: "Primer Pay Content Gate" block for the block editor. Visual divider between free teaser and paid content, with price and access duration overrides in the block sidebar. Posts with the block are automatically paywalled without needing the meta box toggle.
+- **Per-post wallet override**: optional wallet address field in the post meta box. Payments for that post go to the specified wallet instead of the global default.
+- **`.well-known/x402` discovery endpoint**: JSON index of all paywalled content at `/.well-known/x402`. AI agents and crawlers can discover purchasable content without browsing the site.
+
+### Changed
+- **Theme-matching paywall banner**: replaced hardcoded black + lime terminal styling with CSS that inherits from the WordPress theme (fonts, colors, border radius). The banner now looks native on any site. All inline styles moved to a dedicated `primer-pay.css` file using CSS custom properties.
+
 ## [0.2.1] — 2026-04-21
 
 ### Removed

@@ -1,0 +1,38 @@
+/**
+ * Primer Pay — Gutenberg block editor styles.
+ *
+ * Styles for the Content Gate block as it appears inside the post editor.
+ * The visual is a simple horizontal divider with a label, matching common
+ * "more" block patterns so it feels native in the editor.
+ */
+
+.primer-pay-gate-editor {
+    margin: 24px 0;
+    text-align: center;
+    user-select: none;
+}
+
+.primer-pay-gate-editor__line {
+    height: 1px;
+    background: currentColor;
+    opacity: 0.15;
+    margin: 0 0 12px;
+}
+
+.primer-pay-gate-editor__line:last-child {
+    margin: 12px 0 0;
+}
+
+.primer-pay-gate-editor__label {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    opacity: 0.5;
+    margin-bottom: 4px;
+}
+
+.primer-pay-gate-editor__hint {
+    font-size: 11px;
+    opacity: 0.35;
+}

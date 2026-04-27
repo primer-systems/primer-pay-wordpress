@@ -4,7 +4,7 @@ Tags: paywall, micropayments, x402, usdc, monetization
 Requires at least: 5.8
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 0.2.1
+Stable tag: 0.3.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -81,6 +81,20 @@ This plugin relies on the Primer x402 facilitator service to verify and settle p
 This is the standard x402 protocol flow. If you prefer to run your own facilitator, you can configure a custom facilitator URL in the plugin settings.
 
 == Changelog ==
+
+= 0.3.0 =
+* Gutenberg block: "Primer Pay Content Gate" — visual editor block for splitting free and paid content
+* Theme-matching paywall banner: inherits site fonts, colors, and border radius via CSS custom properties
+* Per-post wallet override: route payments to a different wallet per post
+* .well-known/x402 discovery endpoint: JSON index for AI agents and crawlers
+
+= 0.2.1 =
+* Removed front-end "Powered by x402" attribution (guideline 10 compliance)
+
+= 0.2.0 =
+* Multi-network support: Base and SKALE Base
+* Network selection UI with preferred network
+* Automatic USDC contract lookup per network
 
 = 0.1.0 =
 * Initial release

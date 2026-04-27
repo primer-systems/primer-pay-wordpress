@@ -66,7 +66,10 @@ class Primer_Pay_Paywall {
             return;
         }
 
-        $wallet = get_option( 'primer_pay_wallet_address', '' );
+        $wallet = get_post_meta( $post_id, '_primer_pay_wallet_address', true );
+        if ( empty( $wallet ) ) {
+            $wallet = get_option( 'primer_pay_wallet_address', '' );
+        }
         if ( empty( $wallet ) ) {
             // Plugin not configured — serve content normally
             return;
@@ -151,7 +154,15 @@ class Primer_Pay_Paywall {
      * Check if a post has the paywall enabled.
      */
     private function is_paywalled( $post_id ) {
-        return (bool) get_post_meta( $post_id, '_primer_pay_enabled', true );
+        if ( get_post_meta( $post_id, '_primer_pay_enabled', true ) ) {
+            return true;
+        }
+        // Also treat the post as paywalled if it contains a Content Gate block.
+        $post = get_post( $post_id );
+        if ( $post && has_block( 'primer-pay/content-gate', $post ) ) {
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -162,7 +173,7 @@ class Primer_Pay_Paywall {
         if ( empty( $price ) ) {
             $price = get_option( 'primer_pay_default_price', PRIMER_PAY_DEFAULT_PRICE );
         }
-        return $price;
+        return apply_filters( 'primer_pay_post_price', $price, $post_id );
     }
 
     /**
@@ -185,7 +196,7 @@ class Primer_Pay_Paywall {
         if ( ! in_array( $duration, $allowed, true ) ) {
             $duration = PRIMER_PAY_DEFAULT_ACCESS_DURATION;
         }
-        return $duration;
+        return (int) apply_filters( 'primer_pay_post_duration', $duration, $post_id );
     }
 
     /**
@@ -319,7 +330,10 @@ class Primer_Pay_Paywall {
             );
         }
 
-        $wallet = get_option( 'primer_pay_wallet_address', '' );
+        $wallet = get_post_meta( $post_id, '_primer_pay_wallet_address', true );
+        if ( empty( $wallet ) ) {
+            $wallet = get_option( 'primer_pay_wallet_address', '' );
+        }
         if ( empty( $wallet ) ) {
             return new WP_Error(
                 'primer_pay_not_configured',
@@ -460,7 +474,10 @@ class Primer_Pay_Paywall {
      * extension tries it before falling back to others.
      */
     private function build_payment_requirements( $post_id ) {
-        $wallet    = get_option( 'primer_pay_wallet_address', '' );
+        $wallet = get_post_meta( $post_id, '_primer_pay_wallet_address', true );
+        if ( empty( $wallet ) ) {
+            $wallet = get_option( 'primer_pay_wallet_address', '' );
+        }
         $price     = $this->get_price( $post_id );
         $permalink = get_permalink( $post_id );
         $path      = wp_parse_url( $permalink, PHP_URL_PATH ) ?: '/';
@@ -559,10 +576,20 @@ class Primer_Pay_Paywall {
             // Already unlocked via cookie — no JS needed
             return;
         }
-        $wallet = get_option( 'primer_pay_wallet_address', '' );
+        $wallet = get_post_meta( $post_id, '_primer_pay_wallet_address', true );
+        if ( empty( $wallet ) ) {
+            $wallet = get_option( 'primer_pay_wallet_address', '' );
+        }
         if ( empty( $wallet ) ) {
             return;
         }
+
+        wp_enqueue_style(
+            'primer-pay',
+            PRIMER_PAY_PLUGIN_URL . 'assets/primer-pay.css',
+            array(),
+            PRIMER_PAY_VERSION
+        );
 
         wp_enqueue_script(
             'primer-pay-unlock',
@@ -588,7 +615,10 @@ class Primer_Pay_Paywall {
             return array( 'success' => false, 'error' => 'Invalid payment structure' );
         }
 
-        $wallet = get_option( 'primer_pay_wallet_address', '' );
+        $wallet = get_post_meta( $post_id, '_primer_pay_wallet_address', true );
+        if ( empty( $wallet ) ) {
+            $wallet = get_option( 'primer_pay_wallet_address', '' );
+        }
         $price  = $this->get_price( $post_id );
 
         // The payment tells us which network the extension chose. Look up
@@ -714,9 +744,9 @@ class Primer_Pay_Paywall {
      * state that's visible if JS is disabled or the extension isn't
      * installed.
      *
-     * The structure is intentionally framework-free (no classes that
-     * conflict with theme styles, all inline styles) so it drops into any
-     * WordPress theme without surprise.
+     * Styles come from primer-pay.css, which uses CSS custom properties
+     * to inherit from the active WordPress theme. The banner should look
+     * native on any site without configuration.
      */
     private function get_paywall_banner( $price, $post_id ) {
         $chrome_url = 'https://chromewebstore.google.com/detail/primer-pay/bckienhfmjoolgkafljofomegfafanmh';
@@ -725,27 +755,14 @@ class Primer_Pay_Paywall {
         ob_start();
         ?>
         <div id="primer-pay-container"
-             class="primer-pay-container primer-pay-state-initial"
+             class="primer-pay-container"
              data-post-id="<?php echo (int) $post_id; ?>"
              data-price="<?php echo esc_attr( $price ); ?>"
              data-unlock-url="<?php echo esc_url( $unlock_url ); ?>"
-             data-chrome-url="<?php echo esc_url( $chrome_url ); ?>"
-             style="
-                margin: 32px 0;
-                padding: 32px;
-                border: 2px solid #baea2a;
-                background: #09090b;
-                color: #fafafa;
-                font-family: 'JetBrains Mono', ui-monospace, 'Fira Code', monospace;
-                text-align: center;
-             ">
-            <div class="primer-pay-label" style="font-size: 14px; color: #baea2a; font-weight: 600; margin-bottom: 8px; letter-spacing: 0.05em;">
-                PRIMER PAY
-            </div>
-            <div class="primer-pay-price" style="font-size: 24px; font-weight: 600; color: #baea2a; margin-bottom: 8px;">
-                $<?php echo esc_html( $price ); ?> USDC
-            </div>
-            <div class="primer-pay-message" style="font-size: 14px; color: rgba(250,250,250,0.7); margin-bottom: 24px; line-height: 1.5;">
+             data-chrome-url="<?php echo esc_url( $chrome_url ); ?>">
+            <div class="primer-pay-label">PRIMER PAY</div>
+            <div class="primer-pay-price">$<?php echo esc_html( $price ); ?> USDC</div>
+            <div class="primer-pay-message">
                 This content is available instantly with the Primer Pay browser extension.
                 <br>No account needed &mdash; just a one-time micropayment.
             </div>
@@ -753,21 +770,7 @@ class Primer_Pay_Paywall {
                 <a class="primer-pay-cta"
                    href="<?php echo esc_url( $chrome_url ); ?>"
                    target="_blank"
-                   rel="noopener"
-                   style="
-                        display: inline-block;
-                        padding: 12px 32px;
-                        background: rgba(186, 234, 42, 0.1);
-                        border: 1px solid #baea2a;
-                        color: #baea2a;
-                        text-decoration: none;
-                        font-family: inherit;
-                        font-size: 13px;
-                        font-weight: 600;
-                        letter-spacing: 0.05em;
-                   ">
-                    GET PRIMER PAY
-                </a>
+                   rel="noopener">GET PRIMER PAY</a>
             </div>
         </div>
         <?php

@@ -411,9 +411,19 @@ class Primer_Pay_Admin {
                 <?php endforeach; ?>
             </select>
         </p>
+        <?php $post_wallet = get_post_meta( $post->ID, '_primer_pay_wallet_address', true ); ?>
+        <p>
+            <label for="primer_pay_wallet_address">Payment Wallet (optional):</label><br />
+            <input type="text"
+                   id="primer_pay_wallet_address"
+                   name="primer_pay_wallet_address"
+                   value="<?php echo esc_attr( $post_wallet ); ?>"
+                   placeholder="<?php echo esc_attr( $wallet ); ?> (default)"
+                   style="width: 100%; font-family: monospace;" />
+        </p>
         <p class="description">
-            Leave price blank to use the default ($<?php echo esc_html( $default ); ?>).
-            Add <code>[x402]</code> in your content to mark where the free teaser ends.
+            Leave price and wallet blank to use the defaults.
+            Add <code>[x402]</code> in your content (or use the Content Gate block) to mark where the free teaser ends.
         </p>
         <?php
     }
@@ -442,6 +452,15 @@ class Primer_Pay_Admin {
             $price = '';
         }
         update_post_meta( $post_id, '_primer_pay_price', $price );
+
+        // Per-post wallet override. Must be a valid 0x address or empty.
+        $post_wallet = isset( $_POST['primer_pay_wallet_address'] )
+            ? sanitize_text_field( wp_unslash( $_POST['primer_pay_wallet_address'] ) )
+            : '';
+        if ( ! empty( $post_wallet ) && ! preg_match( '/^0x[a-fA-F0-9]{40}$/', $post_wallet ) ) {
+            $post_wallet = ''; // Invalid address — clear it
+        }
+        update_post_meta( $post_id, '_primer_pay_wallet_address', $post_wallet );
 
         // Access duration override. Empty string = "use default" (no override
         // stored). Any other value must match one of the known duration presets.
