@@ -1,14 +1,14 @@
 # Primer Pay for WordPress
 
-> Monetize WordPress content with x402 micropayments. Readers with the [Primer Pay browser extension](https://chromewebstore.google.com/detail/primer-pay/bckienhfmjoolgkafljofomegfafanmh) unlock posts instantly with a one-time USDC payment. Everyone else sees a teaser with an install prompt.
+> Monetize WordPress content with x402 micropayments. Readers with a [compatible x402 browser extension](https://www.primer.systems/primer-pay) unlock posts instantly with a one-time USDC payment. Everyone else sees a teaser with an install prompt.
 
-No accounts. No subscriptions. No payment forms. Just tick a box on any post, set a price, and publish.
+No accounts. No subscriptions. No payment forms. Just add a Content Gate block, set a price, and publish.
 
 [**Download latest release →**](https://github.com/primer-systems/primer-pay-wordpress/releases/latest)
 &nbsp;·&nbsp;
 [**Full documentation →**](https://docs.primer.systems/primer-pay/wordpress.html)
 &nbsp;·&nbsp;
-[**Get the browser extension →**](https://chromewebstore.google.com/detail/primer-pay/bckienhfmjoolgkafljofomegfafanmh)
+[**Get the browser extension →**](https://www.primer.systems/primer-pay)
 
 ---
 
@@ -18,19 +18,22 @@ Primer Pay is an implementation of the [x402 protocol](https://x402.org) — the
 
 1. A visitor loads a paywalled post. WordPress serves the teaser + a small unlock container.
 2. JavaScript fires a fetch to the plugin's REST endpoint.
-3. If the visitor has the [Primer Pay browser extension](https://chromewebstore.google.com/detail/primer-pay/bckienhfmjoolgkafljofomegfafanmh) installed, it intercepts the 402 response, signs a USDC payment, and retries transparently.
+3. If the visitor has a compatible x402 browser extension installed, it intercepts the 402 response, signs a USDC payment, and retries transparently.
 4. The plugin validates the signed payment via the Primer facilitator, sets an HMAC-signed access cookie, and returns the unlocked content.
 5. Subsequent visits within the session duration are served from the cookie — no re-payment on refresh.
 
-Visitors without the extension see a teaser and a "Get Primer Pay" CTA.
+Visitors without a compatible extension see a teaser and a prompt explaining how to access the content.
 
 ## What you get
 
-- **One-click paywall toggle** per post or page
+- **Gutenberg Content Gate block** — visual editor block that splits free teaser from paid content, with price, duration, and wallet settings in the block sidebar
+- **Classic editor support** — `[primer_pay_x402]` shortcode + sidebar meta box for sites not using Gutenberg
 - **Per-post price override** (defaults to your site-wide price)
-- **`[primer_pay_x402]` shortcode** to split the free teaser from the paid content
+- **Per-post wallet override** — route payments to a different wallet per post (multi-author support)
 - **Multi-network support**: accept payments on [Base](https://base.org) (Ethereum L2) and/or [SKALE Base](https://skale.space) (zero-gas EVM) — with configurable priority
+- **Theme-matching paywall banner** — inherits your site's fonts, colors, and border radius via CSS custom properties
 - **Configurable access duration**: 30 minutes to "never expires" — prevents double-charging on refresh
+- **`.well-known/x402` discovery endpoint** — JSON index of all paywalled content at `/.well-known/x402`, enabling AI agents and crawlers to discover purchasable content automatically
 - **Works with any theme** that renders `the_content()` normally — no template modifications needed
 - **Non-custodial**: payments go directly from the reader's wallet to yours. The plugin never touches funds.
 
@@ -59,13 +62,15 @@ Visitors without the extension see a teaser and a "Get Primer Pay" CTA.
 ## Setup
 
 1. **Go to Settings → Primer Pay** in your WordPress admin.
-2. **Enter your wallet address** — the address that should receive USDC payments on Base.
+2. **Enter your wallet address** — the address that should receive USDC payments.
 3. Leave **Default Price** at `0.01` (or set whatever you like), pick an **Access Duration**, and choose which **networks** to accept (Base, SKALE Base, or both). Save.
-4. **Edit any post**, find the **Primer Pay** box in the sidebar, check **Enable x402 Paywall**, and publish.
+4. **Edit any post** and add the **Primer Pay Content Gate** block where you want the teaser to end. All paywall settings (enable/disable, price, duration, wallet) are in the block's sidebar panel.
 
 ### Marking where the teaser ends
 
-Add the `[primer_pay_x402]` shortcode anywhere in your post content. Everything above it is the free teaser; everything below is the paid content:
+**Block editor (Gutenberg):** Add the "Primer Pay Content Gate" block. Everything above it is the free teaser; everything below is the paid content. Configure price, access duration, and wallet override in the block sidebar.
+
+**Classic editor:** Add the `[primer_pay_x402]` shortcode anywhere in your post content:
 
 ```
 This is the free preview everyone sees.
@@ -75,11 +80,21 @@ This is the free preview everyone sees.
 This is the paid content only visitors who pay can read.
 ```
 
-If you don't add `[primer_pay_x402]`, the plugin falls back to the post's excerpt as the teaser.
+If you don't add a Content Gate block or shortcode, the plugin falls back to the post's excerpt as the teaser.
+
+## Agent discovery
+
+The plugin serves a machine-readable JSON index of all paywalled content at `/.well-known/x402`. AI agents, crawlers, and other x402-aware clients can discover purchasable content without browsing the site:
+
+```
+GET https://yoursite.com/.well-known/x402
+```
+
+Returns titles, URLs, prices, networks, and wallet addresses for all paywalled posts. Cached for 5 minutes.
 
 ## For readers: how to pay
 
-Install the free [Primer Pay browser extension](https://chromewebstore.google.com/detail/primer-pay/bckienhfmjoolgkafljofomegfafanmh), fund it with USDC on Base and browse normally. Paywalled content unlocks automatically — no logins, no forms, no checkout flow.
+Install a compatible [x402 browser extension](https://www.primer.systems/primer-pay), fund it with USDC on Base and browse normally. Paywalled content unlocks automatically — no logins, no forms, no checkout flow.
 
 ## Local development
 
@@ -97,10 +112,9 @@ Clone this repo, copy or symlink the `primer-pay/` folder into your site's `wp-c
 
 ## Planned
 
-- Gutenberg block for inline content gating with editor preview
 - Earnings dashboard and payment history export
+- MCP server for AI agent integration (search, preview, and purchase content programmatically)
 - WooCommerce integration for digital downloads
-- Multi-network support
 - SIWX (Sign-In With X) wallet identity for cross-post access
 - REST API and media-file gating for headless WordPress and gated downloads
 
@@ -116,7 +130,7 @@ For larger features or architectural changes, please open an issue first so we c
 
 ## Related
 
-- **[Primer Pay browser extension](https://chromewebstore.google.com/detail/primer-pay/bckienhfmjoolgkafljofomegfafanmh)** — the reader-side component, by the same team
+- **[Primer Pay browser extension](https://www.primer.systems/primer-pay)** — the reader-side component, by the same team
 - **[Primer Systems documentation](https://docs.primer.systems)** — full protocol and tooling docs
 - **[x402 specification](https://x402.org)** — the underlying payment protocol
 - **[Primer x402 facilitator](https://x402.primer.systems)** — settlement service used by this plugin (free, Base network)
