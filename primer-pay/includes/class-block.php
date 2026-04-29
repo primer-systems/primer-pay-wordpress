@@ -8,8 +8,8 @@
  * On the front-end the block renders as the [primer_pay_x402] shortcode marker,
  * so the existing paywall logic in class-paywall.php handles it seamlessly.
  *
- * Block attributes (price, accessDuration) are stored in the block's HTML
- * comment and applied as post-meta overrides when the block is present.
+ * All paywall settings (enabled, price, duration, wallet) are stored as block
+ * attributes. The meta box is only shown for classic editor users.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -47,10 +47,11 @@ class Primer_Pay_Block {
 
         wp_set_script_translations( 'primer-pay-block-editor', 'primer-pay' );
 
-        // Pass duration presets and default price to the editor script.
+        // Pass defaults to the editor script.
         wp_localize_script( 'primer-pay-block-editor', 'primerPayBlock', array(
-            'defaultPrice' => get_option( 'primer_pay_default_price', PRIMER_PAY_DEFAULT_PRICE ),
-            'durations'    => primer_pay_duration_options(),
+            'defaultPrice'  => get_option( 'primer_pay_default_price', PRIMER_PAY_DEFAULT_PRICE ),
+            'defaultWallet' => get_option( 'primer_pay_wallet_address', '' ),
+            'durations'     => primer_pay_duration_options(),
         ) );
 
         register_block_type( 'primer-pay/content-gate', array(
@@ -58,11 +59,19 @@ class Primer_Pay_Block {
             'editor_style'    => 'primer-pay-block-editor',
             'render_callback' => array( $this, 'render_block' ),
             'attributes'      => array(
+                'enabled' => array(
+                    'type'    => 'boolean',
+                    'default' => true,
+                ),
                 'price' => array(
                     'type'    => 'string',
                     'default' => '',
                 ),
                 'accessDuration' => array(
+                    'type'    => 'string',
+                    'default' => '',
+                ),
+                'walletAddress' => array(
                     'type'    => 'string',
                     'default' => '',
                 ),
@@ -73,22 +82,26 @@ class Primer_Pay_Block {
     /**
      * Front-end render callback.
      *
-     * Outputs the [primer_pay_x402] marker. If the block carries a price or
-     * duration override, those are applied to the post meta the first time the
-     * block is rendered (so class-paywall.php picks them up).
+     * Outputs the [primer_pay_x402] marker when enabled. If disabled, outputs
+     * nothing (content flows through without a paywall). Block attributes for
+     * price, duration, and wallet are applied via filters so class-paywall.php
+     * picks them up.
      */
     public function render_block( $attributes, $content ) {
+        // If the block's enable toggle is off, render nothing — the post
+        // won't be treated as paywalled (is_paywalled checks for the block
+        // but we return empty so [primer_pay_x402] never appears in content).
+        if ( empty( $attributes['enabled'] ) ) {
+            return '';
+        }
+
         $post_id = get_the_ID();
         if ( ! $post_id ) {
             return '[primer_pay_x402]';
         }
 
-        // Apply block-level price override to post meta if set.
-        // This lets the Gutenberg block act as the single source of truth
-        // for per-post pricing when used instead of the meta box.
+        // Apply block-level overrides via filters.
         if ( ! empty( $attributes['price'] ) && is_numeric( $attributes['price'] ) ) {
-            // Only update during the render pass — don't persist to DB here.
-            // The paywall class reads the value, which we inject via filter.
             $this->block_price = $attributes['price'];
             add_filter( 'primer_pay_post_price', array( $this, 'filter_price' ), 10, 2 );
         }
@@ -96,6 +109,11 @@ class Primer_Pay_Block {
         if ( ! empty( $attributes['accessDuration'] ) && is_numeric( $attributes['accessDuration'] ) ) {
             $this->block_duration = $attributes['accessDuration'];
             add_filter( 'primer_pay_post_duration', array( $this, 'filter_duration' ), 10, 2 );
+        }
+
+        if ( ! empty( $attributes['walletAddress'] ) && preg_match( '/^0x[a-fA-F0-9]{40}$/', $attributes['walletAddress'] ) ) {
+            $this->block_wallet = $attributes['walletAddress'];
+            add_filter( 'primer_pay_post_wallet', array( $this, 'filter_wallet' ), 10, 2 );
         }
 
         return '[primer_pay_x402]';
@@ -107,7 +125,6 @@ class Primer_Pay_Block {
     public function filter_price( $price, $post_id ) {
         if ( isset( $this->block_price ) ) {
             $price = $this->block_price;
-            // Remove filter after first use to avoid bleeding into other posts.
             remove_filter( 'primer_pay_post_price', array( $this, 'filter_price' ), 10 );
         }
         return $price;
@@ -122,5 +139,16 @@ class Primer_Pay_Block {
             remove_filter( 'primer_pay_post_duration', array( $this, 'filter_duration' ), 10 );
         }
         return $duration;
+    }
+
+    /**
+     * Filter the per-post wallet when the block specifies one.
+     */
+    public function filter_wallet( $wallet, $post_id ) {
+        if ( isset( $this->block_wallet ) ) {
+            $wallet = $this->block_wallet;
+            remove_filter( 'primer_pay_post_wallet', array( $this, 'filter_wallet' ), 10 );
+        }
+        return $wallet;
     }
 }

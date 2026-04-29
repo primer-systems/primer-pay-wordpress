@@ -18,6 +18,7 @@
   var PanelBody      = components.PanelBody;
   var TextControl    = components.TextControl;
   var SelectControl  = components.SelectControl;
+  var ToggleControl  = components.ToggleControl;
 
   blocks.registerBlockType( 'primer-pay/content-gate', {
     title: __( 'Primer Pay Content Gate', 'primer-pay' ),
@@ -27,11 +28,19 @@
     keywords: [ 'paywall', 'x402', 'micropayment', 'gate', 'paid' ],
 
     attributes: {
+      enabled: {
+        type: 'boolean',
+        default: true,
+      },
       price: {
         type: 'string',
         default: '',
       },
       accessDuration: {
+        type: 'string',
+        default: '',
+      },
+      walletAddress: {
         type: 'string',
         default: '',
       },
@@ -42,7 +51,7 @@
       var setAttributes = props.setAttributes;
 
       var blockProps = useBlockProps( {
-        className: 'primer-pay-gate-editor',
+        className: 'primer-pay-gate-editor' + ( attributes.enabled ? '' : ' primer-pay-gate-editor--disabled' ),
       } );
 
       // Build duration options from the localized data (passed from PHP).
@@ -56,14 +65,25 @@
         }
       }
 
-      var defaultPrice = ( window.primerPayBlock && window.primerPayBlock.defaultPrice ) || '0.01';
+      var defaultPrice  = ( window.primerPayBlock && window.primerPayBlock.defaultPrice ) || '0.01';
+      var defaultWallet = ( window.primerPayBlock && window.primerPayBlock.defaultWallet ) || '';
 
       return el( Fragment, null,
         el( InspectorControls, null,
-          el( PanelBody, { title: __( 'Payment Settings', 'primer-pay' ), initialOpen: true },
+          el( PanelBody, { title: __( 'Paywall Settings', 'primer-pay' ), initialOpen: true },
+            el( ToggleControl, {
+              label: __( 'Enable Paywall', 'primer-pay' ),
+              help: attributes.enabled
+                ? __( 'Content below this block is paywalled.', 'primer-pay' )
+                : __( 'Paywall is disabled. All content is visible.', 'primer-pay' ),
+              checked: attributes.enabled,
+              onChange: function ( val ) {
+                setAttributes( { enabled: val } );
+              },
+            } ),
             el( TextControl, {
               label: __( 'Price (USDC)', 'primer-pay' ),
-              help: __( 'Leave blank to use the default price.', 'primer-pay' ),
+              help: __( 'Leave blank to use the default price.', 'primer-pay' ) + ( defaultPrice ? ' ($' + defaultPrice + ')' : '' ),
               value: attributes.price,
               onChange: function ( val ) {
                 setAttributes( { price: val } );
@@ -77,14 +97,24 @@
               onChange: function ( val ) {
                 setAttributes( { accessDuration: val } );
               },
+            } ),
+            el( TextControl, {
+              label: __( 'Payment Wallet (optional)', 'primer-pay' ),
+              help: __( 'Leave blank to use the default wallet.', 'primer-pay' ),
+              value: attributes.walletAddress,
+              placeholder: defaultWallet ? defaultWallet : '0x...',
+              onChange: function ( val ) {
+                setAttributes( { walletAddress: val } );
+              },
             } )
           )
         ),
         el( 'div', blockProps,
           el( 'div', { className: 'primer-pay-gate-editor__line' } ),
           el( 'div', { className: 'primer-pay-gate-editor__label' },
-            __( 'Primer Pay — Content Gate', 'primer-pay' ),
-            attributes.price ? ' — $' + attributes.price + ' USDC' : ''
+            attributes.enabled
+              ? __( 'Primer Pay — Content Gate', 'primer-pay' ) + ( attributes.price ? ' — $' + attributes.price + ' USDC' : '' )
+              : __( 'Primer Pay — Content Gate (disabled)', 'primer-pay' )
           ),
           el( 'div', { className: 'primer-pay-gate-editor__hint' },
             __( 'Free teaser above', 'primer-pay' ) + ' \u2022 ' + __( 'Paid content below', 'primer-pay' )

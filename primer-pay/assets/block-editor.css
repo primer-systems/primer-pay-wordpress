@@ -36,3 +36,11 @@
     font-size: 11px;
     opacity: 0.35;
 }
+
+.primer-pay-gate-editor--disabled {
+    opacity: 0.4;
+}
+
+.primer-pay-gate-editor--disabled .primer-pay-gate-editor__line {
+    border-style: dashed;
+}

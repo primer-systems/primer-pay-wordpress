@@ -66,10 +66,7 @@ class Primer_Pay_Paywall {
             return;
         }
 
-        $wallet = get_post_meta( $post_id, '_primer_pay_wallet_address', true );
-        if ( empty( $wallet ) ) {
-            $wallet = get_option( 'primer_pay_wallet_address', '' );
-        }
+        $wallet = $this->get_wallet( $post_id );
         if ( empty( $wallet ) ) {
             // Plugin not configured — serve content normally
             return;
@@ -157,12 +154,48 @@ class Primer_Pay_Paywall {
         if ( get_post_meta( $post_id, '_primer_pay_enabled', true ) ) {
             return true;
         }
-        // Also treat the post as paywalled if it contains a Content Gate block.
+        // Also treat the post as paywalled if it contains an enabled Content
+        // Gate block. We parse the block attributes to check the enabled flag
+        // rather than just checking for the block's presence.
         $post = get_post( $post_id );
         if ( $post && has_block( 'primer-pay/content-gate', $post ) ) {
-            return true;
+            $blocks = parse_blocks( $post->post_content );
+            foreach ( $blocks as $block ) {
+                if ( 'primer-pay/content-gate' === $block['blockName'] ) {
+                    $enabled = isset( $block['attrs']['enabled'] ) ? $block['attrs']['enabled'] : true;
+                    if ( $enabled ) {
+                        return true;
+                    }
+                }
+            }
         }
         return false;
+    }
+
+    /**
+     * Get the wallet address for a post. Per-post meta > block filter > global default.
+     */
+    private function get_wallet( $post_id ) {
+        $wallet = get_post_meta( $post_id, '_primer_pay_wallet_address', true );
+        if ( empty( $wallet ) ) {
+            $wallet = get_option( 'primer_pay_wallet_address', '' );
+        }
+
+        // Check for block-level override.
+        $post = get_post( $post_id );
+        if ( $post && has_block( 'primer-pay/content-gate', $post ) ) {
+            $blocks = parse_blocks( $post->post_content );
+            foreach ( $blocks as $block ) {
+                if ( 'primer-pay/content-gate' === $block['blockName'] ) {
+                    if ( ! empty( $block['attrs']['walletAddress'] ) && preg_match( '/^0x[a-fA-F0-9]{40}$/', $block['attrs']['walletAddress'] ) ) {
+                        $wallet = $block['attrs']['walletAddress'];
+                    }
+                    break;
+                }
+            }
+        }
+
+        return $wallet;
     }
 
     /**
@@ -173,6 +206,21 @@ class Primer_Pay_Paywall {
         if ( empty( $price ) ) {
             $price = get_option( 'primer_pay_default_price', PRIMER_PAY_DEFAULT_PRICE );
         }
+
+        // Check for block-level override.
+        $post = get_post( $post_id );
+        if ( $post && has_block( 'primer-pay/content-gate', $post ) ) {
+            $blocks = parse_blocks( $post->post_content );
+            foreach ( $blocks as $block ) {
+                if ( 'primer-pay/content-gate' === $block['blockName'] ) {
+                    if ( ! empty( $block['attrs']['price'] ) && is_numeric( $block['attrs']['price'] ) ) {
+                        $price = $block['attrs']['price'];
+                    }
+                    break;
+                }
+            }
+        }
+
         return apply_filters( 'primer_pay_post_price', $price, $post_id );
     }
 
@@ -190,13 +238,31 @@ class Primer_Pay_Paywall {
         } else {
             $duration = $override;
         }
+
+        // Check for block-level override by parsing the post content.
+        // This ensures the block's accessDuration attribute is respected
+        // even when called outside the content render pass (e.g. from
+        // the REST endpoint when setting the access cookie).
+        $post = get_post( $post_id );
+        if ( $post && has_block( 'primer-pay/content-gate', $post ) ) {
+            $blocks = parse_blocks( $post->post_content );
+            foreach ( $blocks as $block ) {
+                if ( 'primer-pay/content-gate' === $block['blockName'] ) {
+                    if ( isset( $block['attrs']['accessDuration'] ) && '' !== $block['attrs']['accessDuration'] ) {
+                        $duration = $block['attrs']['accessDuration'];
+                    }
+                    break;
+                }
+            }
+        }
+
         $duration = (int) $duration;
         // Validate against the known preset set — reject anything weird.
         $allowed = array_keys( primer_pay_duration_options() );
         if ( ! in_array( $duration, $allowed, true ) ) {
             $duration = PRIMER_PAY_DEFAULT_ACCESS_DURATION;
         }
-        return (int) apply_filters( 'primer_pay_post_duration', $duration, $post_id );
+        return $duration;
     }
 
     /**
@@ -330,10 +396,7 @@ class Primer_Pay_Paywall {
             );
         }
 
-        $wallet = get_post_meta( $post_id, '_primer_pay_wallet_address', true );
-        if ( empty( $wallet ) ) {
-            $wallet = get_option( 'primer_pay_wallet_address', '' );
-        }
+        $wallet = $this->get_wallet( $post_id );
         if ( empty( $wallet ) ) {
             return new WP_Error(
                 'primer_pay_not_configured',
@@ -474,10 +537,7 @@ class Primer_Pay_Paywall {
      * extension tries it before falling back to others.
      */
     private function build_payment_requirements( $post_id ) {
-        $wallet = get_post_meta( $post_id, '_primer_pay_wallet_address', true );
-        if ( empty( $wallet ) ) {
-            $wallet = get_option( 'primer_pay_wallet_address', '' );
-        }
+        $wallet = $this->get_wallet( $post_id );
         $price     = $this->get_price( $post_id );
         $permalink = get_permalink( $post_id );
         $path      = wp_parse_url( $permalink, PHP_URL_PATH ) ?: '/';
@@ -576,10 +636,7 @@ class Primer_Pay_Paywall {
             // Already unlocked via cookie — no JS needed
             return;
         }
-        $wallet = get_post_meta( $post_id, '_primer_pay_wallet_address', true );
-        if ( empty( $wallet ) ) {
-            $wallet = get_option( 'primer_pay_wallet_address', '' );
-        }
+        $wallet = $this->get_wallet( $post_id );
         if ( empty( $wallet ) ) {
             return;
         }
@@ -615,10 +672,7 @@ class Primer_Pay_Paywall {
             return array( 'success' => false, 'error' => 'Invalid payment structure' );
         }
 
-        $wallet = get_post_meta( $post_id, '_primer_pay_wallet_address', true );
-        if ( empty( $wallet ) ) {
-            $wallet = get_option( 'primer_pay_wallet_address', '' );
-        }
+        $wallet = $this->get_wallet( $post_id );
         $price  = $this->get_price( $post_id );
 
         // The payment tells us which network the extension chose. Look up
@@ -726,10 +780,18 @@ class Primer_Pay_Paywall {
      * paid portion so the JS can replace the banner placeholder.
      */
     private function get_paid_portion( $content ) {
+        // Check for the shortcode marker (classic editor).
         $marker_pos = strpos( $content, '[primer_pay_x402]' );
         if ( false !== $marker_pos ) {
-            // Skip past the marker itself (17 chars: "[primer_pay_x402]")
             return substr( $content, $marker_pos + 17 );
+        }
+        // Check for the Gutenberg block comment (block editor).
+        // Dynamic blocks with save:null use self-closing format:
+        //   <!-- wp:primer-pay/content-gate {"enabled":true} /-->
+        // We match the block comment and return everything after it.
+        if ( preg_match( '/<!--\s+wp:primer-pay\/content-gate\s+.*?\/-->/s', $content, $matches, PREG_OFFSET_CAPTURE ) ) {
+            $end_pos = $matches[0][1] + strlen( $matches[0][0] );
+            return substr( $content, $end_pos );
         }
         // No marker = everything is paid. Return it all.
         return $content;
