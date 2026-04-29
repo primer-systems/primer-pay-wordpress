@@ -29,11 +29,11 @@ class Primer_Pay_Paywall {
         // Also filter excerpts, so themes that use get_the_excerpt() on
         // archive pages don't leak the paid portion of the content.
         add_filter( 'get_the_excerpt', array( $this, 'filter_excerpt' ), 10, 2 );
-        // Register [x402] as a proper shortcode that renders to nothing.
+        // Register [primer_pay_x402] as a proper shortcode that renders to nothing.
         // We use it internally (in get_teaser) as a split marker, but as a
-        // shortcode it ensures the literal "[x402]" text never appears in
+        // shortcode it ensures the literal "[primer_pay_x402]" text never appears in
         // rendered output.
-        add_shortcode( 'x402', '__return_empty_string' );
+        add_shortcode( 'primer_pay_x402', '__return_empty_string' );
         // REST endpoint for the AJAX unlock flow. Called from unlock.js via
         // in-page fetch, which preserves credentials so Set-Cookie works.
         add_action( 'rest_api_init', array( $this, 'register_rest_routes' ) );
@@ -424,7 +424,7 @@ class Primer_Pay_Paywall {
         // returns the full content instead of the teaser.
         $GLOBALS['primer_pay_settled'] = true;
 
-        // Return only the paid portion (content after [x402]). The visitor
+        // Return only the paid portion (content after [primer_pay_x402]). The visitor
         // is already looking at the teaser on their current page — we just
         // need to swap the banner for the rest of the article, not
         // re-render the whole thing.
@@ -695,12 +695,12 @@ class Primer_Pay_Paywall {
 
     /**
      * Extract the teaser portion of post content.
-     * If [x402] shortcode exists, everything above it is the teaser.
+     * If [primer_pay_x402] shortcode exists, everything above it is the teaser.
      * Otherwise, use the excerpt or first paragraph.
      */
     private function get_teaser( $content ) {
-        // Check for [x402] shortcode marker
-        $marker_pos = strpos( $content, '[x402]' );
+        // Check for [primer_pay_x402] shortcode marker
+        $marker_pos = strpos( $content, '[primer_pay_x402]' );
         if ( false !== $marker_pos ) {
             return wp_kses_post( substr( $content, 0, $marker_pos ) );
         }
@@ -717,7 +717,7 @@ class Primer_Pay_Paywall {
     }
 
     /**
-     * Extract the paid portion of post content (everything after [x402]).
+     * Extract the paid portion of post content (everything after [primer_pay_x402]).
      * If no marker exists, the entire content is considered paid.
      *
      * Used by the REST unlock endpoint: the visitor is already looking at
@@ -726,10 +726,10 @@ class Primer_Pay_Paywall {
      * paid portion so the JS can replace the banner placeholder.
      */
     private function get_paid_portion( $content ) {
-        $marker_pos = strpos( $content, '[x402]' );
+        $marker_pos = strpos( $content, '[primer_pay_x402]' );
         if ( false !== $marker_pos ) {
-            // Skip past the marker itself (6 chars: "[x402]")
-            return substr( $content, $marker_pos + 6 );
+            // Skip past the marker itself (17 chars: "[primer_pay_x402]")
+            return substr( $content, $marker_pos + 17 );
         }
         // No marker = everything is paid. Return it all.
         return $content;
@@ -739,18 +739,17 @@ class Primer_Pay_Paywall {
      * Render the paywall banner / unlock container.
      *
      * This is the element unlock.js targets. It carries all the data needed
-     * for the unlock flow (post ID, price, REST endpoint URL, Chrome Web
-     * Store link) as data attributes, and contains a default "fallback"
-     * state that's visible if JS is disabled or the extension isn't
-     * installed.
+     * for the unlock flow (post ID, price, REST endpoint URL, extension info
+     * URL) as data attributes, and contains a default "fallback" state
+     * that's visible if JS is disabled or the extension isn't installed.
      *
      * Styles come from primer-pay.css, which uses CSS custom properties
      * to inherit from the active WordPress theme. The banner should look
      * native on any site without configuration.
      */
     private function get_paywall_banner( $price, $post_id ) {
-        $chrome_url = 'https://chromewebstore.google.com/detail/primer-pay/bckienhfmjoolgkafljofomegfafanmh';
-        $unlock_url = rest_url( 'primer-pay/v1/unlock/' . (int) $post_id );
+        $extension_url = 'https://www.primer.systems/primer-pay';
+        $unlock_url    = rest_url( 'primer-pay/v1/unlock/' . (int) $post_id );
 
         ob_start();
         ?>
@@ -759,18 +758,12 @@ class Primer_Pay_Paywall {
              data-post-id="<?php echo (int) $post_id; ?>"
              data-price="<?php echo esc_attr( $price ); ?>"
              data-unlock-url="<?php echo esc_url( $unlock_url ); ?>"
-             data-chrome-url="<?php echo esc_url( $chrome_url ); ?>">
-            <div class="primer-pay-label">PRIMER PAY</div>
+             data-extension-url="<?php echo esc_url( $extension_url ); ?>">
+            <div class="primer-pay-label">x402 PAYWALL</div>
             <div class="primer-pay-price">$<?php echo esc_html( $price ); ?> USDC</div>
             <div class="primer-pay-message">
-                This content is available instantly with the Primer Pay browser extension.
-                <br>No account needed &mdash; just a one-time micropayment.
-            </div>
-            <div class="primer-pay-actions">
-                <a class="primer-pay-cta"
-                   href="<?php echo esc_url( $chrome_url ); ?>"
-                   target="_blank"
-                   rel="noopener">GET PRIMER PAY</a>
+                This content is protected by an x402 paywall.
+                <br>Access it instantly using a <a href="<?php echo esc_url( $extension_url ); ?>" target="_blank" rel="noopener">compatible x402 browser extension</a>.
             </div>
         </div>
         <?php

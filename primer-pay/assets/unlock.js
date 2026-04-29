@@ -2,8 +2,8 @@
  * Primer Pay — unlock.js
  *
  * Runs on paywalled post pages. Auto-fires a fetch to the plugin's REST
- * unlock endpoint; if the Primer Pay browser extension is installed, it
- * intercepts the 402 response, signs a payment, and retries transparently.
+ * unlock endpoint; if an x402 browser extension is installed, it intercepts
+ * the 402 response, signs a payment, and retries transparently.
  *
  * The key architectural choice: this is an in-page fetch, so the extension
  * uses its content/main.ts fetch interceptor (not the background webRequest
@@ -15,8 +15,8 @@
  * With the extension but payment rejected (policy, balance, etc.): we show
  * an error and a retry button.
  *
- * Non-JS visitors see the default banner rendered by PHP, which links to the
- * Chrome Web Store. No JS = no x402 anyway (extension needs JS).
+ * Non-JS visitors see the default banner rendered by PHP, which links to
+ * compatible x402 extensions. No JS = no x402 anyway (extension needs JS).
  */
 ( function () {
   'use strict';
@@ -30,10 +30,10 @@
     return; // Nothing to do — this page isn't paywalled
   }
 
-  var postId     = container.getAttribute( 'data-post-id' );
-  var price      = container.getAttribute( 'data-price' );
-  var unlockUrl  = container.getAttribute( 'data-unlock-url' );
-  var chromeUrl  = container.getAttribute( 'data-chrome-url' );
+  var postId       = container.getAttribute( 'data-post-id' );
+  var price        = container.getAttribute( 'data-price' );
+  var unlockUrl    = container.getAttribute( 'data-unlock-url' );
+  var extensionUrl = container.getAttribute( 'data-extension-url' );
 
   if ( ! unlockUrl ) {
     console.warn( '[Primer Pay] No unlock URL on container, aborting' );
@@ -41,8 +41,8 @@
   }
 
   // Tracks whether we detected the extension's patched fetch during the
-  // initial wait phase. Used to decide between "install Primer Pay" and
-  // "Primer Pay declined this payment" when the server returns 402 with
+  // initial wait phase. Used to decide between showing the install CTA and
+  // showing "payment declined" when the server returns 402 with
   // reason=no_payment_header.
   var extensionDetected = false;
 
@@ -61,7 +61,7 @@
 
   function renderProcessing() {
     render(
-      '<div class="primer-pay-label">PRIMER PAY</div>' +
+      '<div class="primer-pay-label">x402 PAYWALL</div>' +
       '<div class="primer-pay-price">$' + escapeHtml( price ) + ' USDC</div>' +
       '<div class="primer-pay-message" style="margin-bottom: 4px;">Processing payment&hellip;</div>' +
       '<div class="primer-pay-spinner"></div>'
@@ -70,10 +70,9 @@
 
   function renderInstallCta() {
     render(
-      '<div class="primer-pay-label">PRIMER PAY</div>' +
+      '<div class="primer-pay-label">x402 PAYWALL</div>' +
       '<div class="primer-pay-price">$' + escapeHtml( price ) + ' USDC</div>' +
-      '<div class="primer-pay-message">This content is available instantly with the Primer Pay browser extension.<br>No account needed &mdash; just a one-time micropayment.</div>' +
-      '<div class="primer-pay-actions"><a class="primer-pay-cta" href="' + escapeAttr( chromeUrl ) + '" target="_blank" rel="noopener">GET PRIMER PAY</a></div>'
+      '<div class="primer-pay-message">This content is protected by an x402 paywall.<br>Access it instantly using a <a href="' + escapeAttr( extensionUrl ) + '" target="_blank" rel="noopener">compatible x402 browser extension</a>.</div>'
     );
   }
 
@@ -100,8 +99,8 @@
    */
   function renderDeclined() {
     render(
-      '<div class="primer-pay-label">PRIMER PAY</div>' +
-      '<div class="primer-pay-message">Payment declined. Check the extension for details.</div>' +
+      '<div class="primer-pay-label">x402 PAYWALL</div>' +
+      '<div class="primer-pay-message">Payment declined. Check your browser extension for details.</div>' +
       '<div class="primer-pay-actions"><button type="button" class="primer-pay-retry" id="primer-pay-retry">TRY AGAIN</button></div>'
     );
     var retryBtn = document.getElementById( 'primer-pay-retry' );
@@ -247,11 +246,11 @@
   // Extension-ready detection
   // ------------------------------------------------------------------
   //
-  // The Primer Pay browser extension patches window.fetch on DOMContentLoaded
-  // to intercept 402 responses. Our unlock.js also runs on DOMContentLoaded,
-  // and there's a race: the extension's bridge.ts registers its listener
+  // x402 browser extensions patch window.fetch on DOMContentLoaded to
+  // intercept 402 responses. Our unlock.js also runs on DOMContentLoaded,
+  // and there's a race: the extension's bridge registers its listener
   // first (at document_start), so its handler runs first and starts
-  // asynchronously loading main.ts. But main.ts takes ~20-50ms to load,
+  // asynchronously loading the main script. But that takes ~20-50ms to load,
   // during which window.fetch is still the native version. If we fire our
   // first fetch immediately, it uses the native fetch and the 402 slips
   // past the interceptor.

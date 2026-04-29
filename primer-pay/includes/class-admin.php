@@ -14,6 +14,56 @@ class Primer_Pay_Admin {
         add_action( 'admin_init', array( $this, 'register_settings' ) );
         add_action( 'add_meta_boxes', array( $this, 'add_meta_box' ) );
         add_action( 'save_post', array( $this, 'save_meta_box' ) );
+        add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_scripts' ) );
+    }
+
+    /**
+     * Enqueue admin scripts on the Primer Pay settings page.
+     */
+    public function enqueue_admin_scripts( $hook ) {
+        if ( 'settings_page_primer-pay' !== $hook ) {
+            return;
+        }
+
+        // Register a dummy handle so we can attach inline script to it.
+        wp_register_script(
+            'primer-pay-admin',
+            false,
+            array(),
+            PRIMER_PAY_VERSION,
+            true
+        );
+        wp_enqueue_script( 'primer-pay-admin' );
+
+        $inline_js = <<<'JS'
+(function() {
+    var checkboxes = document.querySelectorAll('input[name="primer_pay_enabled_networks[]"]');
+    var radios = document.querySelectorAll('input[name="primer_pay_preferred_network"]');
+
+    function sync() {
+        checkboxes.forEach(function(cb, i) {
+            var radio = radios[i];
+            if (!radio) return;
+            radio.disabled = !cb.checked;
+            if (!cb.checked && radio.checked) {
+                for (var j = 0; j < checkboxes.length; j++) {
+                    if (checkboxes[j].checked) {
+                        radios[j].checked = true;
+                        break;
+                    }
+                }
+            }
+        });
+    }
+
+    checkboxes.forEach(function(cb) {
+        cb.addEventListener('change', sync);
+    });
+    sync();
+})();
+JS;
+
+        wp_add_inline_script( 'primer-pay-admin', $inline_js );
     }
 
     // -------------------------------------------------------------------------
@@ -180,8 +230,8 @@ class Primer_Pay_Admin {
             <ol>
                 <li>Enter your wallet address above and save.</li>
                 <li>Edit any post and check <strong>"Enable x402 Paywall"</strong> in the Primer Pay box.</li>
-                <li>Optionally add <code>[x402]</code> in your post content to mark where the teaser ends and paid content begins.</li>
-                <li>Visitors with the <a href="https://primer.systems" target="_blank">Primer Pay extension</a> will pay automatically. Others see a teaser with an install prompt.</li>
+                <li>Optionally add <code>[primer_pay_x402]</code> in your post content to mark where the teaser ends and paid content begins.</li>
+                <li>Visitors with a <a href="https://www.primer.systems/primer-pay" target="_blank">compatible x402 browser extension</a> will pay automatically. Others see a teaser with an install prompt.</li>
             </ol>
         </div>
         <?php
@@ -273,38 +323,6 @@ class Primer_Pay_Admin {
         echo '</table>';
         echo '</fieldset>';
         echo '<p class="description">Enable the networks you want to accept payments on. The preferred network is offered first to readers — if they can\'t pay on it, the next enabled network is tried. Your wallet address works on all networks.</p>';
-
-        // Inline JS: disable the preferred radio for unchecked networks.
-        ?>
-        <script>
-        (function() {
-            var checkboxes = document.querySelectorAll('input[name="primer_pay_enabled_networks[]"]');
-            var radios = document.querySelectorAll('input[name="primer_pay_preferred_network"]');
-
-            function sync() {
-                checkboxes.forEach(function(cb, i) {
-                    var radio = radios[i];
-                    if (!radio) return;
-                    radio.disabled = !cb.checked;
-                    if (!cb.checked && radio.checked) {
-                        // Move preferred to the first enabled network
-                        for (var j = 0; j < checkboxes.length; j++) {
-                            if (checkboxes[j].checked) {
-                                radios[j].checked = true;
-                                break;
-                            }
-                        }
-                    }
-                });
-            }
-
-            checkboxes.forEach(function(cb) {
-                cb.addEventListener('change', sync);
-            });
-            sync();
-        })();
-        </script>
-        <?php
     }
 
     /**
@@ -423,7 +441,7 @@ class Primer_Pay_Admin {
         </p>
         <p class="description">
             Leave price and wallet blank to use the defaults.
-            Add <code>[x402]</code> in your content (or use the Content Gate block) to mark where the free teaser ends.
+            Add <code>[primer_pay_x402]</code> in your content (or use the Content Gate block) to mark where the free teaser ends.
         </p>
         <?php
     }

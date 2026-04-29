@@ -5,8 +5,8 @@
  * Registers the "Primer Pay Content Gate" block, which serves as a visual
  * separator in the block editor between free teaser content and paid content.
  *
- * On the front-end the block renders as the [x402] shortcode marker, so the
- * existing paywall logic in class-paywall.php handles it seamlessly.
+ * On the front-end the block renders as the [primer_pay_x402] shortcode marker,
+ * so the existing paywall logic in class-paywall.php handles it seamlessly.
  *
  * Block attributes (price, accessDuration) are stored in the block's HTML
  * comment and applied as post-meta overrides when the block is present.
@@ -71,14 +71,14 @@ class Primer_Pay_Block {
     /**
      * Front-end render callback.
      *
-     * Outputs the [x402] marker. If the block carries a price or duration
-     * override, those are applied to the post meta the first time the block
-     * is rendered (so class-paywall.php picks them up).
+     * Outputs the [primer_pay_x402] marker. If the block carries a price or
+     * duration override, those are applied to the post meta the first time the
+     * block is rendered (so class-paywall.php picks them up).
      */
     public function render_block( $attributes, $content ) {
         $post_id = get_the_ID();
         if ( ! $post_id ) {
-            return '[x402]';
+            return '[primer_pay_x402]';
         }
 
         // Apply block-level price override to post meta if set.
@@ -96,7 +96,7 @@ class Primer_Pay_Block {
             add_filter( 'primer_pay_post_duration', array( $this, 'filter_duration' ), 10, 2 );
         }
 
-        return '[x402]';
+        return '[primer_pay_x402]';
     }
 
     /**

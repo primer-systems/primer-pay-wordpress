@@ -36,7 +36,7 @@ Initial public release.
 ### Added
 - **Per-post paywall toggle** with per-post price override, configured from a meta box on the post editor.
 - **Global settings page** at Settings → Primer Pay: wallet address, default price (USDC), facilitator URL, default access duration.
-- **`[x402]` shortcode** to split the free teaser from the paid content. Registered as a WordPress shortcode so the literal `[x402]` marker never appears in rendered output.
+- **`[primer_pay_x402]` shortcode** to split the free teaser from the paid content. Registered as a WordPress shortcode so the literal `[primer_pay_x402]` marker never appears in rendered output.
 - **REST unlock endpoint** `GET /wp-json/primer-pay/v1/unlock/<post_id>` that issues the 402 response, validates X-PAYMENT headers, settles payments via the Primer facilitator, and returns the unlocked content as JSON.
 - **HMAC-signed access cookies** so readers aren't charged again on refresh or re-navigation within the configured session duration. Cookies are HttpOnly, SameSite=Lax, and `Secure` on HTTPS.
 - **Access duration presets**: 30 minutes / 1 hour (default) / 24 hours / 7 days / 30 days / never expires / always charge. Configurable globally and per-post.

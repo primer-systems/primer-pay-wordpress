@@ -28,7 +28,7 @@ Visitors without the extension see a teaser and a "Get Primer Pay" CTA.
 
 - **One-click paywall toggle** per post or page
 - **Per-post price override** (defaults to your site-wide price)
-- **`[x402]` shortcode** to split the free teaser from the paid content
+- **`[primer_pay_x402]` shortcode** to split the free teaser from the paid content
 - **Multi-network support**: accept payments on [Base](https://base.org) (Ethereum L2) and/or [SKALE Base](https://skale.space) (zero-gas EVM) — with configurable priority
 - **Configurable access duration**: 30 minutes to "never expires" — prevents double-charging on refresh
 - **Works with any theme** that renders `the_content()` normally — no template modifications needed
@@ -65,17 +65,17 @@ Visitors without the extension see a teaser and a "Get Primer Pay" CTA.
 
 ### Marking where the teaser ends
 
-Add the `[x402]` shortcode anywhere in your post content. Everything above it is the free teaser; everything below is the paid content:
+Add the `[primer_pay_x402]` shortcode anywhere in your post content. Everything above it is the free teaser; everything below is the paid content:
 
 ```
 This is the free preview everyone sees.
 
-[x402]
+[primer_pay_x402]
 
 This is the paid content only visitors who pay can read.
 ```
 
-If you don't add `[x402]`, the plugin falls back to the post's excerpt as the teaser.
+If you don't add `[primer_pay_x402]`, the plugin falls back to the post's excerpt as the teaser.
 
 ## For readers: how to pay
 

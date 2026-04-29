@@ -27,7 +27,7 @@ Primer Pay lets you put any post or page behind a micropayment wall using the x4
 * One-click paywall toggle per post/page
 * Customizable price per post (or use a global default)
 * Multi-network: accept payments on Base, SKALE Base, or both — with configurable priority
-* `[x402]` shortcode to split free teaser from paid content
+* `[primer_pay_x402]` shortcode to split free teaser from paid content
 * Styled paywall banner for visitors without the extension
 * No user accounts or login required
 * Non-custodial — payments go directly to your wallet
@@ -100,7 +100,7 @@ This is the standard x402 protocol flow. If you prefer to run your own facilitat
 * Initial release
 * Global settings: wallet address, default price, facilitator URL, access duration
 * Per-post paywall toggle with price and access-duration overrides
-* [x402] shortcode for teaser/content splitting (registered so the marker never appears in output)
+* [primer_pay_x402] shortcode for teaser/content splitting (registered so the marker never appears in output)
 * REST unlock endpoint at /wp-json/primer-pay/v1/unlock/&lt;post_id&gt;
 * HMAC-signed session cookies so refreshing doesn't re-charge readers
 * Archive-safe teaser rendering (no content leaks on blog index, categories, feeds, excerpts)

@@ -3,7 +3,7 @@
  *
  * Registers a "Primer Pay Content Gate" block that acts as a visual
  * separator between the free teaser and the paid content. On the
- * front-end it renders as the [x402] shortcode marker.
+ * front-end it renders as the [primer_pay_x402] shortcode marker.
  *
  * No build step required — uses wp.* globals provided by WordPress.
  */
