@@ -759,11 +759,17 @@ class Primer_Pay_Paywall {
              data-price="<?php echo esc_attr( $price ); ?>"
              data-unlock-url="<?php echo esc_url( $unlock_url ); ?>"
              data-extension-url="<?php echo esc_url( $extension_url ); ?>">
-            <div class="primer-pay-label">x402 PAYWALL</div>
+            <div class="primer-pay-label"><?php esc_html_e( 'x402 PAYWALL', 'primer-pay' ); ?></div>
             <div class="primer-pay-price">$<?php echo esc_html( $price ); ?> USDC</div>
             <div class="primer-pay-message">
-                This content is protected by an x402 paywall.
-                <br>Access it instantly using a <a href="<?php echo esc_url( $extension_url ); ?>" target="_blank" rel="noopener">compatible x402 browser extension</a>.
+                <?php esc_html_e( 'This content is protected by an x402 paywall.', 'primer-pay' ); ?>
+                <br><?php
+                    printf(
+                        /* translators: %s: link to extension info page */
+                        esc_html__( 'Access it instantly using a %s.', 'primer-pay' ),
+                        '<a href="' . esc_url( $extension_url ) . '" target="_blank" rel="noopener">' . esc_html__( 'compatible x402 browser extension', 'primer-pay' ) . '</a>'
+                    );
+                ?>
             </div>
         </div>
         <?php

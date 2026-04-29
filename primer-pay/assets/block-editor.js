@@ -7,11 +7,12 @@
  *
  * No build step required — uses wp.* globals provided by WordPress.
  */
-( function ( blocks, element, blockEditor, components, data ) {
+( function ( blocks, element, blockEditor, components, i18n ) {
   'use strict';
 
   var el             = element.createElement;
   var Fragment       = element.Fragment;
+  var __             = i18n.__;
   var InspectorControls = blockEditor.InspectorControls;
   var useBlockProps   = blockEditor.useBlockProps;
   var PanelBody      = components.PanelBody;
@@ -19,8 +20,8 @@
   var SelectControl  = components.SelectControl;
 
   blocks.registerBlockType( 'primer-pay/content-gate', {
-    title: 'Primer Pay Content Gate',
-    description: 'Split your post into a free teaser (above) and paid content (below). Visitors pay to unlock everything below this block.',
+    title: __( 'Primer Pay Content Gate', 'primer-pay' ),
+    description: __( 'Split your post into a free teaser (above) and paid content (below). Visitors pay to unlock everything below this block.', 'primer-pay' ),
     icon: 'lock',
     category: 'design',
     keywords: [ 'paywall', 'x402', 'micropayment', 'gate', 'paid' ],
@@ -45,7 +46,7 @@
       } );
 
       // Build duration options from the localized data (passed from PHP).
-      var durationChoices = [ { label: 'Use default', value: '' } ];
+      var durationChoices = [ { label: __( 'Use default', 'primer-pay' ), value: '' } ];
       if ( window.primerPayBlock && window.primerPayBlock.durations ) {
         var durations = window.primerPayBlock.durations;
         for ( var key in durations ) {
@@ -59,18 +60,18 @@
 
       return el( Fragment, null,
         el( InspectorControls, null,
-          el( PanelBody, { title: 'Payment Settings', initialOpen: true },
+          el( PanelBody, { title: __( 'Payment Settings', 'primer-pay' ), initialOpen: true },
             el( TextControl, {
-              label: 'Price (USDC)',
-              help: 'Leave blank to use the default price ($' + defaultPrice + ').',
+              label: __( 'Price (USDC)', 'primer-pay' ),
+              help: __( 'Leave blank to use the default price.', 'primer-pay' ),
               value: attributes.price,
               onChange: function ( val ) {
                 setAttributes( { price: val } );
               },
             } ),
             el( SelectControl, {
-              label: 'Access Duration',
-              help: 'How long the reader retains access after paying.',
+              label: __( 'Access Duration', 'primer-pay' ),
+              help: __( 'How long the reader retains access after paying.', 'primer-pay' ),
               value: attributes.accessDuration,
               options: durationChoices,
               onChange: function ( val ) {
@@ -82,11 +83,11 @@
         el( 'div', blockProps,
           el( 'div', { className: 'primer-pay-gate-editor__line' } ),
           el( 'div', { className: 'primer-pay-gate-editor__label' },
-            'Primer Pay — Content Gate',
+            __( 'Primer Pay — Content Gate', 'primer-pay' ),
             attributes.price ? ' — $' + attributes.price + ' USDC' : ''
           ),
           el( 'div', { className: 'primer-pay-gate-editor__hint' },
-            'Free teaser above \u2022 Paid content below'
+            __( 'Free teaser above', 'primer-pay' ) + ' \u2022 ' + __( 'Paid content below', 'primer-pay' )
           ),
           el( 'div', { className: 'primer-pay-gate-editor__line' } )
         )
@@ -103,5 +104,5 @@
   window.wp.element,
   window.wp.blockEditor,
   window.wp.components,
-  window.wp.data
+  window.wp.i18n
 );

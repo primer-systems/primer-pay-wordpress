@@ -72,8 +72,8 @@ JS;
 
     public function add_settings_page() {
         add_options_page(
-            'Primer Pay',
-            'Primer Pay',
+            __( 'Primer Pay', 'primer-pay' ),
+            __( 'Primer Pay', 'primer-pay' ),
             'manage_options',
             'primer-pay',
             array( $this, 'render_settings_page' )
@@ -84,7 +84,7 @@ JS;
         // Section
         add_settings_section(
             'primer_pay_main',
-            'x402 Payment Settings',
+            __( 'x402 Payment Settings', 'primer-pay' ),
             array( $this, 'render_section_intro' ),
             'primer-pay'
         );
@@ -96,7 +96,7 @@ JS;
         ) );
         add_settings_field(
             'primer_pay_wallet_address',
-            'Wallet Address',
+            __( 'Wallet Address', 'primer-pay' ),
             array( $this, 'render_wallet_field' ),
             'primer-pay',
             'primer_pay_main'
@@ -109,7 +109,7 @@ JS;
         ) );
         add_settings_field(
             'primer_pay_default_price',
-            'Default Price (USDC)',
+            __( 'Default Price (USDC)', 'primer-pay' ),
             array( $this, 'render_price_field' ),
             'primer-pay',
             'primer_pay_main'
@@ -122,7 +122,7 @@ JS;
         ) );
         add_settings_field(
             'primer_pay_facilitator_url',
-            'Facilitator URL',
+            __( 'Facilitator URL', 'primer-pay' ),
             array( $this, 'render_facilitator_field' ),
             'primer-pay',
             'primer_pay_main'
@@ -135,7 +135,7 @@ JS;
         ) );
         add_settings_field(
             'primer_pay_access_duration',
-            'Access Duration',
+            __( 'Access Duration', 'primer-pay' ),
             array( $this, 'render_access_duration_field' ),
             'primer-pay',
             'primer_pay_main'
@@ -152,7 +152,7 @@ JS;
         ) );
         add_settings_field(
             'primer_pay_networks',
-            'Accepted Networks',
+            __( 'Accepted Networks', 'primer-pay' ),
             array( $this, 'render_networks_field' ),
             'primer-pay',
             'primer_pay_main'
@@ -160,7 +160,7 @@ JS;
     }
 
     public function render_section_intro() {
-        echo '<p>Configure your x402 payment settings. You need a wallet address that can receive USDC payments on your chosen network(s).</p>';
+        echo '<p>' . esc_html__( 'Configure your x402 payment settings. You need a wallet address that can receive USDC payments on your chosen network(s).', 'primer-pay' ) . '</p>';
     }
 
     public function render_wallet_field() {
@@ -169,10 +169,10 @@ JS;
             '<input type="text" name="primer_pay_wallet_address" value="%s" class="regular-text" placeholder="0x..." style="font-family: monospace;" />',
             esc_attr( $value )
         );
-        echo '<p class="description">Your wallet address. The same address works on all supported networks (Base, SKALE Base). Payments arrive as USDC.</p>';
+        echo '<p class="description">' . esc_html__( 'Your wallet address. The same address works on all supported networks (Base, SKALE Base). Payments arrive as USDC.', 'primer-pay' ) . '</p>';
 
         if ( empty( $value ) ) {
-            echo '<p class="description" style="color: #d63638; font-weight: 600;">&#9888; No wallet configured. Paywalls are inactive until you set this.</p>';
+            echo '<p class="description" style="color: #d63638; font-weight: 600;">&#9888; ' . esc_html__( 'No wallet configured. Paywalls are inactive until you set this.', 'primer-pay' ) . '</p>';
         }
     }
 
@@ -182,7 +182,7 @@ JS;
             '<input type="text" name="primer_pay_default_price" value="%s" class="small-text" placeholder="0.01" /> USDC',
             esc_attr( $value )
         );
-        echo '<p class="description">Default price per post. You can override this on individual posts.</p>';
+        echo '<p class="description">' . esc_html__( 'Default price per post. You can override this on individual posts.', 'primer-pay' ) . '</p>';
     }
 
     public function render_facilitator_field() {
@@ -191,7 +191,7 @@ JS;
             '<input type="url" name="primer_pay_facilitator_url" value="%s" class="regular-text" />',
             esc_attr( $value )
         );
-        echo '<p class="description">The x402 facilitator that verifies and settles payments. The default Primer facilitator supports Base and SKALE Base.</p>';
+        echo '<p class="description">' . esc_html__( 'The x402 facilitator that verifies and settles payments. The default Primer facilitator supports Base and SKALE Base.', 'primer-pay' ) . '</p>';
     }
 
     public function render_access_duration_field() {
@@ -207,7 +207,7 @@ JS;
             );
         }
         echo '</select>';
-        echo '<p class="description">After a successful payment, readers get free access to the same post for this duration before being asked to pay again. Prevents double-charging on refresh or re-navigation. Can be overridden per post.</p>';
+        echo '<p class="description">' . esc_html__( 'After a successful payment, readers get free access to the same post for this duration before being asked to pay again. Prevents double-charging on refresh or re-navigation. Can be overridden per post.', 'primer-pay' ) . '</p>';
     }
 
     public function render_settings_page() {
@@ -216,7 +216,7 @@ JS;
         }
         ?>
         <div class="wrap">
-            <h1>Primer Pay Settings</h1>
+            <h1><?php esc_html_e( 'Primer Pay Settings', 'primer-pay' ); ?></h1>
             <form method="post" action="options.php">
                 <?php
                 settings_fields( 'primer-pay' );
@@ -226,12 +226,30 @@ JS;
             </form>
 
             <hr />
-            <h2>Quick Start</h2>
+            <h2><?php esc_html_e( 'Quick Start', 'primer-pay' ); ?></h2>
             <ol>
-                <li>Enter your wallet address above and save.</li>
-                <li>Edit any post and check <strong>"Enable x402 Paywall"</strong> in the Primer Pay box.</li>
-                <li>Optionally add <code>[primer_pay_x402]</code> in your post content to mark where the teaser ends and paid content begins.</li>
-                <li>Visitors with a <a href="https://www.primer.systems/primer-pay" target="_blank">compatible x402 browser extension</a> will pay automatically. Others see a teaser with an install prompt.</li>
+                <li><?php esc_html_e( 'Enter your wallet address above and save.', 'primer-pay' ); ?></li>
+                <li><?php
+                    printf(
+                        /* translators: %s: "Enable x402 Paywall" label */
+                        esc_html__( 'Edit any post and check %s in the Primer Pay box.', 'primer-pay' ),
+                        '<strong>' . esc_html__( 'Enable x402 Paywall', 'primer-pay' ) . '</strong>'
+                    );
+                ?></li>
+                <li><?php
+                    printf(
+                        /* translators: %s: the shortcode */
+                        esc_html__( 'Optionally add %s in your post content to mark where the teaser ends and paid content begins.', 'primer-pay' ),
+                        '<code>[primer_pay_x402]</code>'
+                    );
+                ?></li>
+                <li><?php
+                    printf(
+                        /* translators: %s: link to extension info */
+                        esc_html__( 'Visitors with a %s will pay automatically. Others see a teaser with an install prompt.', 'primer-pay' ),
+                        '<a href="https://www.primer.systems/primer-pay" target="_blank">' . esc_html__( 'compatible x402 browser extension', 'primer-pay' ) . '</a>'
+                    );
+                ?></li>
             </ol>
         </div>
         <?php
@@ -247,7 +265,7 @@ JS;
             add_settings_error(
                 'primer_pay_wallet_address',
                 'invalid_address',
-                'Invalid wallet address. Must be a 0x-prefixed Ethereum address (42 characters).'
+                __( 'Invalid wallet address. Must be a 0x-prefixed Ethereum address (42 characters).', 'primer-pay' )
             );
             return get_option( 'primer_pay_wallet_address', '' );
         }
@@ -260,7 +278,7 @@ JS;
             add_settings_error(
                 'primer_pay_default_price',
                 'invalid_price',
-                'Price must be a positive number.'
+                __( 'Price must be a positive number.', 'primer-pay' )
             );
             return get_option( 'primer_pay_default_price', PRIMER_PAY_DEFAULT_PRICE );
         }
@@ -297,7 +315,12 @@ JS;
 
         echo '<fieldset>';
         echo '<table style="border-spacing: 0 6px;">';
-        echo '<tr><th style="text-align:left; padding-right:24px;">Network</th><th style="text-align:left; padding-right:24px;">Enabled</th><th style="text-align:left;">Preferred</th></tr>';
+        printf(
+            '<tr><th style="text-align:left; padding-right:24px;">%s</th><th style="text-align:left; padding-right:24px;">%s</th><th style="text-align:left;">%s</th></tr>',
+            esc_html__( 'Network', 'primer-pay' ),
+            esc_html__( 'Enabled', 'primer-pay' ),
+            esc_html__( 'Preferred', 'primer-pay' )
+        );
 
         foreach ( $networks as $key => $net ) {
             $is_enabled   = in_array( $key, $enabled, true );
@@ -322,7 +345,7 @@ JS;
 
         echo '</table>';
         echo '</fieldset>';
-        echo '<p class="description">Enable the networks you want to accept payments on. The preferred network is offered first to readers — if they can\'t pay on it, the next enabled network is tried. Your wallet address works on all networks.</p>';
+        echo '<p class="description">' . esc_html__( 'Enable the networks you want to accept payments on. The preferred network is offered first to readers. Your wallet address works on all networks.', 'primer-pay' ) . '</p>';
     }
 
     /**
@@ -367,7 +390,7 @@ JS;
     public function add_meta_box() {
         add_meta_box(
             'primer_pay_meta_box',
-            'Primer Pay',
+            __( 'Primer Pay', 'primer-pay' ),
             array( $this, 'render_meta_box' ),
             array( 'post', 'page' ),
             'side',
@@ -386,14 +409,21 @@ JS;
         $wallet           = get_option( 'primer_pay_wallet_address', '' );
 
         if ( empty( $wallet ) ) {
-            echo '<p style="color: #d63638;">&#9888; Configure your wallet in <a href="' . esc_url( admin_url( 'options-general.php?page=primer-pay' ) ) . '">Settings &rarr; Primer Pay</a> first.</p>';
+            printf(
+                '<p style="color: #d63638;">&#9888; %s</p>',
+                sprintf(
+                    /* translators: %s: link to settings page */
+                    esc_html__( 'Configure your wallet in %s first.', 'primer-pay' ),
+                    '<a href="' . esc_url( admin_url( 'options-general.php?page=primer-pay' ) ) . '">' . esc_html__( 'Settings &rarr; Primer Pay', 'primer-pay' ) . '</a>'
+                )
+            );
             return;
         }
 
         $duration_options = primer_pay_duration_options();
         $default_label    = isset( $duration_options[ $default_duration ] )
             ? $duration_options[ $default_duration ]
-            : 'default';
+            : __( 'default', 'primer-pay' );
         ?>
         <p>
             <label>
@@ -401,25 +431,31 @@ JS;
                        name="primer_pay_enabled"
                        value="1"
                        <?php checked( $enabled ); ?> />
-                Enable x402 Paywall
+                <?php esc_html_e( 'Enable x402 Paywall', 'primer-pay' ); ?>
             </label>
         </p>
         <p>
-            <label for="primer_pay_price">Price (USDC):</label><br />
+            <label for="primer_pay_price"><?php esc_html_e( 'Price (USDC):', 'primer-pay' ); ?></label><br />
             <input type="text"
                    id="primer_pay_price"
                    name="primer_pay_price"
                    value="<?php echo esc_attr( $price ); ?>"
-                   placeholder="<?php echo esc_attr( $default ); ?> (default)"
+                   placeholder="<?php echo esc_attr( $default ); ?> (<?php esc_attr_e( 'default', 'primer-pay' ); ?>)"
                    style="width: 100%; font-family: monospace;" />
         </p>
         <p>
-            <label for="primer_pay_access_duration">Access Duration:</label><br />
+            <label for="primer_pay_access_duration"><?php esc_html_e( 'Access Duration:', 'primer-pay' ); ?></label><br />
             <select id="primer_pay_access_duration"
                     name="primer_pay_access_duration"
                     style="width: 100%;">
                 <option value="" <?php selected( '', $access_override ); ?>>
-                    Use default (<?php echo esc_html( $default_label ); ?>)
+                    <?php
+                    printf(
+                        /* translators: %s: default duration label */
+                        esc_html__( 'Use default (%s)', 'primer-pay' ),
+                        esc_html( $default_label )
+                    );
+                    ?>
                 </option>
                 <?php foreach ( $duration_options as $seconds => $label ) : ?>
                     <option value="<?php echo (int) $seconds; ?>"
@@ -431,17 +467,22 @@ JS;
         </p>
         <?php $post_wallet = get_post_meta( $post->ID, '_primer_pay_wallet_address', true ); ?>
         <p>
-            <label for="primer_pay_wallet_address">Payment Wallet (optional):</label><br />
+            <label for="primer_pay_wallet_address"><?php esc_html_e( 'Payment Wallet (optional):', 'primer-pay' ); ?></label><br />
             <input type="text"
                    id="primer_pay_wallet_address"
                    name="primer_pay_wallet_address"
                    value="<?php echo esc_attr( $post_wallet ); ?>"
-                   placeholder="<?php echo esc_attr( $wallet ); ?> (default)"
+                   placeholder="<?php echo esc_attr( $wallet ); ?> (<?php esc_attr_e( 'default', 'primer-pay' ); ?>)"
                    style="width: 100%; font-family: monospace;" />
         </p>
         <p class="description">
-            Leave price and wallet blank to use the defaults.
-            Add <code>[primer_pay_x402]</code> in your content (or use the Content Gate block) to mark where the free teaser ends.
+            <?php
+            printf(
+                /* translators: %s: the shortcode */
+                esc_html__( 'Leave price and wallet blank to use the defaults. Add %s in your content (or use the Content Gate block) to mark where the free teaser ends.', 'primer-pay' ),
+                '<code>[primer_pay_x402]</code>'
+            );
+            ?>
         </p>
         <?php
     }

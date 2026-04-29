@@ -33,7 +33,7 @@ class Primer_Pay_Block {
         wp_register_script(
             'primer-pay-block-editor',
             PRIMER_PAY_PLUGIN_URL . 'assets/block-editor.js',
-            array( 'wp-blocks', 'wp-element', 'wp-block-editor', 'wp-components' ),
+            array( 'wp-blocks', 'wp-element', 'wp-block-editor', 'wp-components', 'wp-i18n' ),
             PRIMER_PAY_VERSION,
             true
         );
@@ -44,6 +44,8 @@ class Primer_Pay_Block {
             array(),
             PRIMER_PAY_VERSION
         );
+
+        wp_set_script_translations( 'primer-pay-block-editor', 'primer-pay' );
 
         // Pass duration presets and default price to the editor script.
         wp_localize_script( 'primer-pay-block-editor', 'primerPayBlock', array(
