@@ -367,8 +367,8 @@ class Primer_Pay_Paywall {
     /**
      * Handle an unlock request. This is where the real x402 dance happens:
      *
-     *  1. No X-PAYMENT header → return 402 with payment-required
-     *  2. X-PAYMENT header present → settle via facilitator
+     *  1. No PAYMENT-SIGNATURE header → return 402 with payment-required
+     *  2. PAYMENT-SIGNATURE header present → settle via facilitator
      *  3. On success → set access cookie + return post content as JSON
      *  4. On failure → return 402 with error
      *
@@ -412,7 +412,7 @@ class Primer_Pay_Paywall {
             return $this->build_success_response( $post, null );
         }
 
-        $payment_header = $request->get_header( 'x-payment' );
+        $payment_header = $request->get_header( 'payment-signature' );
 
         if ( ! $payment_header ) {
             return $this->build_402_response( $post_id );
@@ -459,7 +459,7 @@ class Primer_Pay_Paywall {
         );
         $response->header( 'payment-required', $encoded );
         // Expose the custom header so JS can read it cross-origin if needed.
-        $response->header( 'Access-Control-Expose-Headers', 'payment-required, X-PAYMENT-RESPONSE' );
+        $response->header( 'Access-Control-Expose-Headers', 'payment-required, PAYMENT-RESPONSE' );
         return $response;
     }
 
@@ -518,10 +518,10 @@ class Primer_Pay_Paywall {
 
         if ( $settlement_data ) {
             $response->header(
-                'X-PAYMENT-RESPONSE',
+                'PAYMENT-RESPONSE',
                 base64_encode( wp_json_encode( $settlement_data ) )
             );
-            $response->header( 'Access-Control-Expose-Headers', 'X-PAYMENT-RESPONSE' );
+            $response->header( 'Access-Control-Expose-Headers', 'PAYMENT-RESPONSE' );
         }
 
         return $response;
@@ -571,11 +571,8 @@ class Primer_Pay_Paywall {
             $net = $all_networks[ $net_key ];
             $accepts[] = array(
                 'scheme'            => 'exact',
-                'network'           => $net_key,
-                'maxAmountRequired' => $amount,
-                'resource'          => $path,
-                'description'       => 'Access to: ' . $title,
-                'mimeType'          => 'text/html',
+                'network'           => $net['caip2'],
+                'amount'            => $amount,
                 'payTo'             => $wallet,
                 'maxTimeoutSeconds' => 3600,
                 'asset'             => $net['asset'],
@@ -591,11 +588,8 @@ class Primer_Pay_Paywall {
             $base = $all_networks['base'];
             $accepts[] = array(
                 'scheme'            => 'exact',
-                'network'           => 'base',
-                'maxAmountRequired' => $amount,
-                'resource'          => $path,
-                'description'       => 'Access to: ' . $title,
-                'mimeType'          => 'text/html',
+                'network'           => $base['caip2'],
+                'amount'            => $amount,
                 'payTo'             => $wallet,
                 'maxTimeoutSeconds' => 3600,
                 'asset'             => $base['asset'],
@@ -607,7 +601,12 @@ class Primer_Pay_Paywall {
         }
 
         return array(
-            'x402Version' => 1,
+            'x402Version' => 2,
+            'resource'    => array(
+                'url'         => $path,
+                'description' => 'Access to: ' . $title,
+                'mimeType'    => 'text/html',
+            ),
             'accepts'     => $accepts,
         );
     }
@@ -678,28 +677,33 @@ class Primer_Pay_Paywall {
         // The payment tells us which network the extension chose. Look up
         // the correct asset address from our networks config so the
         // facilitator receives matching requirements.
-        $payment_network = ! empty( $payment['network'] ) ? $payment['network'] : 'base';
+        // v2 uses CAIP-2 format (eip155:8453), v1 uses simple strings (base).
+        $payment_network = ! empty( $payment['network'] ) ? $payment['network'] : 'eip155:8453';
         $all_networks    = primer_pay_get_networks();
 
-        if ( isset( $all_networks[ $payment_network ] ) ) {
-            $asset = $all_networks[ $payment_network ]['asset'];
-        } else {
-            // Unknown network — use Base as fallback
-            $asset = $all_networks['base']['asset'];
+        // Resolve CAIP-2 network ID to our internal key and asset address.
+        $asset     = $all_networks['base']['asset']; // fallback
+        $caip2_net = $payment_network;
+        foreach ( $all_networks as $key => $net ) {
+            if ( $net['caip2'] === $payment_network || $key === $payment_network ) {
+                $asset     = $net['asset'];
+                $caip2_net = $net['caip2'];
+                break;
+            }
         }
 
         $atomic_amount   = $this->to_atomic_units( $price );
         $facilitator_url = get_option( 'primer_pay_facilitator_url', PRIMER_PAY_DEFAULT_FACILITATOR );
 
         $payload = array(
-            'x402Version'         => 1,
+            'x402Version'         => 2,
             'paymentPayload'      => $payment,
             'paymentRequirements' => array(
-                'scheme'            => 'exact',
-                'network'           => $payment_network,
-                'maxAmountRequired' => $atomic_amount,
-                'asset'             => $asset,
-                'payTo'             => $wallet,
+                'scheme'  => 'exact',
+                'network' => $caip2_net,
+                'amount'  => $atomic_amount,
+                'asset'   => $asset,
+                'payTo'   => $wallet,
             ),
         );
 

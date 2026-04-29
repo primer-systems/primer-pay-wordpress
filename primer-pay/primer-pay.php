@@ -32,6 +32,7 @@ if ( ! function_exists( 'primer_pay_get_networks' ) ) {
             'base' => array(
                 'name'         => 'Base',
                 'chainId'      => 8453,
+                'caip2'        => 'eip155:8453',
                 'asset'        => '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
                 'tokenName'    => 'USD Coin',
                 'tokenVersion' => '2',
@@ -39,6 +40,7 @@ if ( ! function_exists( 'primer_pay_get_networks' ) ) {
             'skale-base' => array(
                 'name'         => 'SKALE Base',
                 'chainId'      => 1187947933,
+                'caip2'        => 'eip155:1187947933',
                 'asset'        => '0x85889c8c714505E0c94b30fcfcF64fE3Ac8FCb20',
                 'tokenName'    => 'USD Coin',
                 'tokenVersion' => '2',
