@@ -46,16 +46,22 @@ Visitors without a compatible extension see a teaser and a prompt explaining how
 
 ## Installation
 
-### Option 1: Upload via WordPress admin (recommended)
+### Option 1: Install from WordPress.org (recommended)
+
+1. In your WordPress admin, go to **Plugins → Add New**
+2. Search for **"Primer Pay"**
+3. Click **Install Now**, then **Activate**
+
+### Option 2: Upload via WordPress admin
 
 1. Download the latest release: [primer-pay.zip](https://github.com/primer-systems/primer-pay-wordpress/releases/latest/download/primer-pay.zip)
 2. In your WordPress admin, go to **Plugins → Add New → Upload Plugin**
 3. Select the zip file and click **Install Now**
 4. Click **Activate Plugin**
 
-### Option 2: Manual install
+### Option 3: Manual install
 
-1. Download and extract the zip
+1. Download and extract the zip from [GitHub releases](https://github.com/primer-systems/primer-pay-wordpress/releases/latest)
 2. Upload the `primer-pay/` folder to `/wp-content/plugins/` on your site
 3. Activate the plugin through **Plugins → Installed Plugins**
 
