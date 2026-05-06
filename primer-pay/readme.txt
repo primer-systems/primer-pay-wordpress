@@ -4,7 +4,7 @@ Tags: paywall, micropayments, x402, usdc, monetization
 Requires at least: 5.8
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 0.3.0
+Stable tag: 0.3.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -24,14 +24,17 @@ Primer Pay lets you put any post or page behind a micropayment wall using the x4
 
 **Features:**
 
-* One-click paywall toggle per post/page
-* Customizable price per post (or use a global default)
+* Gutenberg Content Gate block — visual divider between free teaser and paid content with inline settings
+* Classic editor support — `[primer_pay_x402]` shortcode plus sidebar meta box
+* Per-post price override (defaults to your site-wide price)
+* Per-post wallet override — route payments to a different wallet per post (multi-author support)
 * Multi-network: accept payments on Base, SKALE Base, or both — with configurable priority
-* `[primer_pay_x402]` shortcode to split free teaser from paid content
-* Styled paywall banner for visitors without the extension
+* Theme-matching paywall banner — inherits your site's fonts, colors, and border radius
+* Configurable access duration: 30 minutes to "never expires"
+* `.well-known/x402` discovery endpoint — JSON index for AI agents and crawlers to find purchasable content
+* Works with any theme that renders the_content() normally
 * No user accounts or login required
 * Non-custodial — payments go directly to your wallet
-* Works with the standard x402 protocol
 
 **Requirements:**
 
@@ -40,10 +43,22 @@ Primer Pay lets you put any post or page behind a micropayment wall using the x4
 
 == Installation ==
 
-1. Upload the `primer-pay` folder to `/wp-content/plugins/`.
-2. Activate the plugin through the "Plugins" menu in WordPress.
-3. Go to Settings > Primer Pay and enter your wallet address.
-4. Edit any post, check "Enable x402 Paywall" in the Primer Pay sidebar box, and publish.
+**From WordPress.org (recommended):**
+
+1. In your WordPress admin, go to Plugins > Add New.
+2. Search for "Primer Pay".
+3. Click Install Now, then Activate.
+
+**Manual upload:**
+
+1. Download the plugin zip file.
+2. In your WordPress admin, go to Plugins > Add New > Upload Plugin.
+3. Select the zip file and click Install Now, then Activate.
+
+**Setup:**
+
+1. Go to Settings > Primer Pay and enter your wallet address.
+2. Edit any post, check "Enable x402 Paywall" in the Primer Pay sidebar box, and publish.
 
 == Frequently Asked Questions ==
 
@@ -67,6 +82,13 @@ They see a free teaser of your content plus a styled banner explaining the price
 
 No. Payments go directly from the visitor's extension wallet to your wallet address. Primer never holds funds.
 
+== Screenshots ==
+
+1. Settings page — configure your wallet address, default price, access duration, and accepted networks.
+2. Adding the Content Gate block — search for "Primer Pay" in the Gutenberg block inserter.
+3. Content Gate in the editor — the block splits free teaser (above) from paid content (below), with per-post settings in the sidebar.
+4. Front-end paywall banner — visitors without the extension see the price and a link to get started.
+
 == External services ==
 
 This plugin relies on the Primer x402 facilitator service to verify and settle payments. When a visitor attempts to pay for content, the plugin sends the signed payment authorization to the facilitator, which validates the signature and executes the on-chain USDC transfer on the Base network.
@@ -81,6 +103,9 @@ This plugin relies on the Primer x402 facilitator service to verify and settle p
 This is the standard x402 protocol flow. If you prefer to run your own facilitator, you can configure a custom facilitator URL in the plugin settings.
 
 == Changelog ==
+
+= 0.3.1 =
+* Fixed: Paywall banner now correctly hidden when no wallet is configured (was showing unstyled)
 
 = 0.3.0 =
 * Gutenberg block: "Primer Pay Content Gate" — visual editor block for splitting free and paid content

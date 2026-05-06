@@ -99,6 +99,12 @@ class Primer_Pay_Paywall {
             return $content;
         }
 
+        // No wallet configured = paywall inactive, show full content
+        $wallet = $this->get_wallet( $post_id );
+        if ( empty( $wallet ) ) {
+            return $content;
+        }
+
         // If payment was settled this request, show full content
         if ( ! empty( $GLOBALS['primer_pay_settled'] ) ) {
             return $content;
